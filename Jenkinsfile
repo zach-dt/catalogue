@@ -63,7 +63,8 @@ pipeline {
             }
             dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws') {
               container('go') {
-                sh "make build"
+                sh "./scripts/build.jb.sh"
+                sh "make release"
                 sh 'export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml'
 
                 sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
