@@ -19,7 +19,7 @@ pipeline {
           HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
         }
         steps {
-          dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws') {
+          dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
             checkout scm
             container('go') {
               sh "make linux"
@@ -29,7 +29,7 @@ pipeline {
               sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION"
             }
           }
-          dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws/charts/preview') {
+          dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue/charts/preview') {
             container('go') {
               sh "make preview"
               sh "jx preview --app $APP_NAME --dir ../.."
@@ -43,10 +43,10 @@ pipeline {
         }
         steps {
           container('go') {
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws') {
+            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
               checkout scm
             }
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws/charts/sockshop-ws') {
+            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue/charts/catalogue') {
                 // ensure we're not on a detached head
                 sh "git checkout master"
                 // until we switch to the new kubernetes / jenkins credential implementation use git credentials store
@@ -54,18 +54,18 @@ pipeline {
 
                 sh "jx step git credentials"
             }
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws') {
+            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
               // so we can retrieve the version in later steps
               sh "echo \$(jx-release-version) > VERSION"
             }
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws/charts/sockshop-ws') {
+            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue/charts/catalogue') {
               sh "make tag"
             }
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws') {
+            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
               container('go') {
                 sh "./scripts/build.jb.sh"
                 sh "make release"
-                sh 'export VERSION=`cat VERSION`' // && skaffold build -f skaffold.yaml'
+                sh 'export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml'
 
                 sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
               }
@@ -78,7 +78,7 @@ pipeline {
           branch 'master'
         }
         steps {
-          dir ('/home/jenkins/go/src/github.com/acm-workshop/sockshop-ws/charts/sockshop-ws') {
+          dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue/charts/catalogue') {
             container('go') {
               sh 'jx step changelog --version v\$(cat ../../VERSION)'
 
