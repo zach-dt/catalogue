@@ -64,9 +64,10 @@ pipeline {
             dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
               container('go') {
                 sh "./scripts/build.jb.sh"
-                sh "make release"
+                //sh "make release"
                 sh 'export VERSION=`cat VERSION`' // && skaffold build -f skaffold.yaml'
-
+                sh "docker build -t $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION) -f ./build/docker/catalogue/Dockerfile ./build/docker"
+                sh "docker push $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
                 sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
               }
             }
