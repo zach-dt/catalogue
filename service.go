@@ -46,6 +46,9 @@ type Health struct {
 	Time    string `json:"time"`
 }
 
+// ACM Error scenario
+var acmwsDBError = false // strconv.ParseBool(os.Getenv("ACM_FAIL_CATALOGUE_DB"))
+
 // ErrNotFound is returned when there is no sock for a given ID.
 var ErrNotFound = errors.New("not found")
 
@@ -94,7 +97,7 @@ func (s *catalogueService) List(tags []string, order string, pageNum, pageSize i
 	query += ";"
 
 	err := s.db.Select(&socks, query, args...)
-	if err != nil {
+	if err != nil || acmwsDBError {
 		s.logger.Log("database error", err)
 		return []Sock{}, ErrDBConnection
 	}
