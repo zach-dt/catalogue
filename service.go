@@ -47,7 +47,8 @@ type Health struct {
 }
 
 // ACM Error scenario
-var acmwsDBError = false // strconv.ParseBool(os.Getenv("ACM_FAIL_CATALOGUE_DB"))
+var acmwsDBError = false
+var acmwsDBSlowness = 850
 
 // ErrNotFound is returned when there is no sock for a given ID.
 var ErrNotFound = errors.New("not found")
@@ -107,7 +108,7 @@ func (s *catalogueService) List(tags []string, order string, pageNum, pageSize i
 	}
 
 	// DEMO: Change 0 to 850
-	time.Sleep(0 * time.Millisecond)
+	time.Sleep(acmwsDBSlowness * time.Millisecond)
 
 	socks = cut(socks, pageNum, pageSize)
 
