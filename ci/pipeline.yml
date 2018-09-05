@@ -1,0 +1,325 @@
+---
+groups:
+- name: orders-jobs
+  jobs:
+  - build-orders
+  - build-orders-test-image
+  - deploy-orders-to-stage
+  - execute-orders-functional-tests
+  - deploy-orders-to-prod
+  - execute-orders-load-tests
+  - validate-orders-load-test
+  - promote-new-version-orders
+
+- name: init-dynatrace
+  jobs: 
+  - init-dynatrace-orders
+
+resource_types:
+- name: dynatrace-resource
+  type: docker-image
+  source:
+    repository: mvilliger/dynatrace-resource
+
+resources:
+
+# GitHub Repositories
+- name: git-pipeline
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/acm-workshop/sockshop.git
+
+- name: git-orders
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/acm-workshop/orders.git
+
+- name: dynatrace
+  type: dynatrace-resource
+  source:
+    apitoken: ((apitoken))
+    tenanthost: ((tenanthost))
+# Docker Images
+
+- name: orders-image
+  type: docker-image
+  source:
+    repository: ((docker-hub-username))/orders
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+
+- name: orders-test-image
+  type: docker-image
+  source:
+    repository: ((docker-hub-username))/orders-test
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
+
+# PCF Environments
+
+- name: pcf-stage
+  type: cf
+  source:
+    api: ((pcf-stage-api))
+    username: ((pcf-stage-deploy-username))
+    password: ((pcf-stage-deploy-password))
+    organization: ((pcf-stage-organization))
+    space: ((pcf-stage-space))
+    skip_cert_check: false
+
+- name: pcf-production
+  type: cf
+  source:
+    api: ((pcf-prod-api))
+    username: ((pcf-prod-deploy-username))
+    password: ((pcf-prod-deploy-password))
+    organization: ((pcf-prod-organization))
+    space: ((pcf-prod-space))
+    skip_cert_check: false
+
+jobs:
+
+# Initialize Dynatrace Custom Device
+
+- name: init-dynatrace-orders
+  public: true
+  plan:
+  - aggregate: 
+    - get: git-pipeline
+    - get: git-orders
+  - task: init-dynatrace-task
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/init-dynatrace-task.yml
+    params: 
+      apitoken: ((apitoken))
+      tenanthost: ((tenanthost))
+      APP_REPO: git-orders
+
+## ORDERS
+
+- name: build-orders
+  plan:
+  - get: git-orders
+    trigger: true
+  - task: mvn-build
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: maven, tag: 3.2-jdk-8}
+      inputs:
+      - name: git-orders
+      outputs:
+      - name: workspace
+      run:
+        path: /bin/sh
+        args:
+        - -exc
+        - |
+          output_dir=workspace
+          cd git-orders
+          mvn -DskipTests package
+          cd ..
+          cp git-orders/target/*.jar git-orders/docker/orders
+          cp -R git-orders/docker/orders/. "${output_dir}/"
+  - put: orders-image
+    params:
+      build: workspace
+      cache_tag: latest
+
+- name: build-orders-test-image
+  serial: true
+  public: true
+  plan:
+  - get: git-orders
+    trigger: true
+    passed:
+    - build-orders
+  - put: orders-test-image
+    params:
+      build: git-orders/test
+      cache_tag: latest
+
+- name: deploy-orders-to-stage
+  serial: true
+  public: true
+  plan:
+  - get: git-orders
+    trigger: true
+    passed:
+      - build-orders
+  - get: git-pipeline
+    trigger: false      
+  - task: prepare-app-manifest
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-stage-orders-suffix)) 
+      DOCKER_HUB_ACCOUNT: ((docker-hub-username))
+      APP_REPO: git-orders  
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: orders/Staging
+      pipelinetaskname: deploy-orders-to-prod
+      deployversion: v1.0 
+      APP_REPO: git-orders            
+  - put: pcf-stage
+    params:
+      manifest: app-manifest-output/manifest.yml  
+
+- name: execute-orders-functional-tests
+  serial: true
+  public: true
+  plan:
+  - aggregate:
+    - get: git-orders
+      trigger: true
+      passed:
+        - deploy-orders-to-stage
+    - get: orders-test-image
+      passed:
+        - build-orders-test-image
+  - task: run-functional-tests
+    image: orders-test-image
+    config:
+      platform: linux
+      inputs:
+      - name: git-orders
+      run:
+        dir: git-orders
+        path: /bin/sh
+        args:
+        - -exc
+        - |
+          mvn -q test
+          
+- name: deploy-orders-to-prod
+  serial: true
+  public: true
+  plan:
+  - get: git-orders
+    trigger: true
+    passed:
+      - execute-orders-functional-tests
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-orders-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))   
+  - task: prepare-app-manifest
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-orders-suffix)) 
+      DOCKER_HUB_ACCOUNT: ((docker-hub-username))
+      APP_REPO: git-orders
+      PRODUCTION: true                 
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: orders/Production
+      pipelinetaskname: deploy-orders-to-prod
+      deployversion: v1.0 
+      APP_REPO: git-orders     
+  - put: pcf-production
+    params:
+      manifest: app-manifest-output/manifest.yml  
+
+- name: execute-orders-load-tests
+  serial: true
+  public: true
+  plan:
+  - aggregate:
+    - get: git-orders
+      trigger: true
+      passed:
+       - deploy-orders-to-prod
+    - get: orders-test-image
+      passed:
+        - build-orders-test-image
+    - get: git-pipeline
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-user-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))           
+  - task: run-load-tests
+    image: orders-test-image
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/load-tests.yml
+    params:
+      APP_REPO: git-orders
+      PRODUCTION: true
+      PCF_APP_SUFFIX: ((pcf-prod-orders-suffix))
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))   
+  - task: push-dynatrace-monspec-data
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
+    params: 
+      monspecserviceenvironment: orders/Production-$NEXT_APP_COLOR
+      apitoken: ((apitoken))
+      tenanthost: ((tenanthost))
+      APP_REPO: git-orders            
+
+- name: validate-orders-load-test
+  serial: true
+  public: true
+  plan:
+  - get: git-orders
+    trigger: true
+    passed:
+      - execute-orders-load-tests
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-user-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))       
+  - task: validate-via-monspec
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
+    params: 
+      monspeccomparison: orders/Production-$NEXT_APP_COLOR\ToProduction-$CURRENT_APP_COLOR\Last5m
+      apitoken: ((apitoken))
+      tenanthost: ((tenanthost))
+      APP_REPO: git-orders   
+
+- name: promote-new-version-orders
+  serial: true
+  public: true
+  plan:
+  - get: git-orders
+    trigger: true
+    passed:
+      - validate-orders-load-test
+  - get: git-pipeline
+    trigger: false      
+  - task: get-current-app-color
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-orders-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))   
+  - task: switch-app-routes
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/update-routes.yml
+    params:
+      PCF_APP_SUFFIX: ((pcf-prod-orders-suffix))
+      PCF_API: ((pcf-prod-api))
+      PCF_ORG: ((pcf-prod-organization))
+      PCF_USER: ((pcf-prod-deploy-username))
+      PCF_PWD: ((pcf-prod-deploy-password))
+      PCF_SPACE: ((pcf-prod-space))
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))    
