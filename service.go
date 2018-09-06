@@ -48,7 +48,7 @@ type Health struct {
 
 // ACM Error scenario
 var acmwsDBError = false
-var acmwsDBSlowness time.Duration = 850
+var acmwsDBSlowness time.Duration = 0
 
 // ErrNotFound is returned when there is no sock for a given ID.
 var ErrNotFound = errors.New("not found")
