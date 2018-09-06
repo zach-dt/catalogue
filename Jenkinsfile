@@ -136,7 +136,7 @@ pipeline {
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
               string(name: 'VUCount', value: '10'),
-              string(name: 'LoopCount', value: '10000'),
+              string(name: 'LoopCount', value: '1000'),
               string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
               string(name: 'FUNC_VALIDATION', value: 'no'),
               string(name: 'AVG_RT_VALIDATION', value: '250')
