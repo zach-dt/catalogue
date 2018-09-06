@@ -94,7 +94,7 @@ pipeline {
       }
       stage('Health Check Staging') {
         steps {
-          build job: 'jmeter-as-container/master', 
+          build job: 'acm-workshop/jmeter-as-container/master', 
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
@@ -111,7 +111,7 @@ pipeline {
       }
       stage('Functional Check Staging') {
         steps {
-          build job: 'jmeter-as-container/master', 
+          build job: 'acm-workshop/jmeter-as-container/master', 
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
@@ -128,7 +128,7 @@ pipeline {
       }
       stage('Performance Check Staging') {
         steps {
-          build job: 'jmeter-as-container/master', 
+          build job: 'acm-workshop/jmeter-as-container/master', 
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
