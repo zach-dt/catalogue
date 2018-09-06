@@ -98,12 +98,12 @@ pipeline {
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
-              string(name: 'SERVER_URL', value: '$APP_NAME.jx-staging.35.233.18.9.nip.io'),
+              string(name: 'SERVER_URL', value: 'catalogue.jx-staging.35.233.18.9.nip.io'),
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
               string(name: 'VUCount', value: '1'),
               string(name: 'LoopCount', value: '1'),
-              string(name: 'DT_LTN', value: 'HealthCheck'),
+              string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
               string(name: 'FUNC_VALIDATION', value: 'yes'),
               string(name: 'AVG_RT_VALIDATION', value: '0')
             ]
@@ -115,12 +115,12 @@ pipeline {
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
-              string(name: 'SERVER_URL', value: '$APP_NAME.jx-staging.35.233.18.9.nip.io'),
+              string(name: 'SERVER_URL', value: 'catalogue.jx-staging.35.233.18.9.nip.io'),
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
               string(name: 'VUCount', value: '1'),
               string(name: 'LoopCount', value: '1'),
-              string(name: 'DT_LTN', value: 'FuncCheck_${BUILD_NUMBER}'),
+              string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
               string(name: 'FUNC_VALIDATION', value: 'yes'),
               string(name: 'AVG_RT_VALIDATION', value: '0')
             ]
@@ -132,12 +132,12 @@ pipeline {
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
-              string(name: 'SERVER_URL', value: '$APP_NAME.jx-staging.35.233.18.9.nip.io'),
+              string(name: 'SERVER_URL', value: 'catalogue.jx-staging.35.233.18.9.nip.io'),
               string(name: 'SERVER_PORT', value: '80'),
               string(name: 'CHECK_PATH', value: '/health'),
               string(name: 'VUCount', value: '10'),
               string(name: 'LoopCount', value: '10000'),
-              string(name: 'DT_LTN', value: 'PerfCheck_${BUILD_NUMBER}'),
+              string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
               string(name: 'FUNC_VALIDATION', value: 'no'),
               string(name: 'AVG_RT_VALIDATION', value: '250')
             ]
