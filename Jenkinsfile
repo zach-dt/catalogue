@@ -92,9 +92,22 @@ pipeline {
           }
         }
       }
+      stage('DT Deploy Event') {
+        agent {
+          label "jenkins-dtcli"
+        }
+        steps {              
+          container('dtcli') {
+            checkout scm
+
+            sh "python3 /dtcli/dtcli.py config apitoken ${DT_API_TOKEN} tenanthost ${DT_TENANT_URL}"
+            sh "python3 /dtcli/dtcli.py monspec pushdeploy monspec/catalogue_monspec.json monspec/catalogue_pipelineinfo.json catalogue/Staging JenkinsBuild_${BUILD_NUMBER} ${BUILD_NUMBER}"
+          }
+        }
+      }
       stage('Health Check Staging') {
         steps {
-          build job: "${env.ORG}/jmeter-as-container/master", 
+          build job: "${env.ORG}/jmeter-tests/master", 
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
@@ -111,7 +124,7 @@ pipeline {
       }
       stage('Functional Check Staging') {
         steps {
-          build job: "${env.ORG}/jmeter-as-container/master", 
+          build job: "${env.ORG}/jmeter-tests/master", 
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
@@ -128,7 +141,7 @@ pipeline {
       }
       stage('Performance Check Staging') {
         steps {
-          build job: "${env.ORG}/jmeter-as-container/master", 
+          build job: "${env.ORG}/jmeter-tests/master", 
             parameters: [
               string(name: 'BUILD_JMETER', value: 'no'), 
               string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
