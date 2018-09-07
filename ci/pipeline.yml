@@ -4,6 +4,12 @@ groups:
   jobs:
   - build-catalogue
   - deploy-catalogue-to-stage
+  - validate-catalogue-load-test
+  - promote-new-version-catalogue
+  - build-catalogue-test-image
+  - execute-catalogue-functional-tests
+  - deploy-catalogue-to-prod
+  - execute-catalogue-load-tests
 
 - name: init-dynatrace
   jobs: 
@@ -21,13 +27,13 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/acm-workshop/sockshop.git
+    uri: https://github.com/acm-workshop-concourse/sockshop.git
 
 - name: git-catalogue
   type: git
   source:
     branch: master
-    uri: https://github.com/acm-workshop/catalogue.git
+    uri: https://github.com/acm-workshop-concourse/catalogue.git
 
 - name: dynatrace
   type: dynatrace-resource
