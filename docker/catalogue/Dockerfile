@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-ENV SERVICE_USER=myuser \
+ENV    SERVICE_USER=myuser \
     SERVICE_UID=10001 \
     SERVICE_GROUP=mygroup \
     SERVICE_GID=10001

@@ -46,6 +46,10 @@ type Health struct {
 	Time    string `json:"time"`
 }
 
+// ACM Error scenario
+var acmwsDBError = false
+var acmwsDBSlowness time.Duration = 850
+
 // ErrNotFound is returned when there is no sock for a given ID.
 var ErrNotFound = errors.New("not found")
 
@@ -94,7 +98,7 @@ func (s *catalogueService) List(tags []string, order string, pageNum, pageSize i
 	query += ";"
 
 	err := s.db.Select(&socks, query, args...)
-	if err != nil {
+	if err != nil || acmwsDBError {
 		s.logger.Log("database error", err)
 		return []Sock{}, ErrDBConnection
 	}
@@ -104,7 +108,7 @@ func (s *catalogueService) List(tags []string, order string, pageNum, pageSize i
 	}
 
 	// DEMO: Change 0 to 850
-	time.Sleep(0 * time.Millisecond)
+	time.Sleep(acmwsDBSlowness * time.Millisecond)
 
 	socks = cut(socks, pageNum, pageSize)
 
