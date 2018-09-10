@@ -4,12 +4,11 @@ groups:
   jobs:
   - build-catalogue
   - deploy-catalogue-to-stage
-  - validate-catalogue-load-test
-  - promote-new-version-catalogue
-  - build-catalogue-test-image
-  - execute-catalogue-functional-tests
+  - health-check
   - deploy-catalogue-to-prod
   - execute-catalogue-load-tests
+  - validate-catalogue-load-test
+  - promote-new-version-catalogue
 
 - name: init-dynatrace
   jobs: 
@@ -22,12 +21,18 @@ resource_types:
     repository: mvilliger/dynatrace-resource
 
 resources:
-# GitHub Repositories
+
 - name: git-pipeline
   type: git
   source:
     branch: master
     uri: https://github.com/acm-workshop-concourse/sockshop.git
+
+- name: git-jmeter-as-container
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/acm-workshop/jmeter-as-container.git
 
 - name: git-catalogue
   type: git
@@ -40,19 +45,11 @@ resources:
   source:
     apitoken: ((apitoken))
     tenanthost: ((tenanthost))
-# Docker Images
 
 - name: catalogue-image
   type: docker-image
   source:
     repository: ((docker-hub-username))/catalogue
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
-
-- name: catalogue-test-image
-  type: docker-image
-  source:
-    repository: ((docker-hub-username))/catalogue-test
     username: ((docker-hub-username))
     password: ((docker-hub-password))
 
@@ -117,22 +114,12 @@ jobs:
         - -exc
         - |
           output_dir=workspace
-          rm git-catalogue/Dockerfile
-          cp git-catalogue/docker/catalogue/Dockerfile git-catalogue/
-          cp -R git-catalogue/. "${output_dir}/"
+          cp git-catalogue/docker/catalogue/Dockerfile "${output_dir}/Dockerfile"
+          sh git-catalogue/scripts/build.jb.sh
+          cp -R git-catalogue/build/docker/catalogue/ "${output_dir}/"
   - put: catalogue-image
     params:
       build: workspace
-      cache_tag: latest
-
-- name: build-catalogue-test-image
-  serial: true
-  public: true
-  plan:
-  - get: git-catalogue
-  - put: catalogue-test-image
-    params:
-      build: git-catalogue
       cache_tag: latest
 
 - name: deploy-catalogue-to-stage
@@ -161,7 +148,7 @@ jobs:
     params:
       manifest: app-manifest-output/manifest.yml  
   
-- name: execute-catalogue-functional-tests
+- name: health-check
   serial: true
   public: true
   plan:
@@ -170,22 +157,21 @@ jobs:
       trigger: true
       passed:
         - deploy-catalogue-to-stage
-    - get: catalogue-test-image
-      passed:
-        - build-catalogue-test-image
-  - task: run-functional-tests
-    image: catalogue-test-image
-    config:
-      platform: linux
-      inputs:
-      - name: git-catalogue
-      run:
-        dir: git-catalogue
-        path: /bin/sh
-        args:
-        - -c
-        - |
-          go test api/endpoints_test.go
+    - get: git-jmeter-as-container
+    - get: git-pipeline
+  - task: run-load-tests
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/health-test.yml
+    params:
+      APP_REPO: git-jmeter-as-container
+      FUNC_VALIDATION: yes
+      PRODUCTION: false
+      SCRIPT_NAME: basiccheck.jmx
+      PCF_APP_SUFFIX: ((pcf-stage-catalogue-suffix))
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+      DT_LTN: HealthCheck
+      VUCount: 1
+      LoopCount: 1
+
 - name: deploy-catalogue-to-prod
   serial: true
   public: true
@@ -193,7 +179,7 @@ jobs:
   - get: git-catalogue
     trigger: true
     passed:
-      - execute-catalogue-functional-tests 
+      - health-check 
   - get: git-pipeline
     trigger: false
   - task: get-current-app-color
@@ -231,9 +217,6 @@ jobs:
       trigger: true
       passed:
         - deploy-catalogue-to-prod
-    - get: catalogue-test-image
-      passed:
-        - build-catalogue-test-image
     - get: git-pipeline
       trigger: false        
   - task: get-current-app-color
