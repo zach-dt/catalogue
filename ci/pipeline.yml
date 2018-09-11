@@ -26,19 +26,19 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/acm-workshop-concourse/sockshop.git
+    uri: https://github.com/dynatrace-sockshop/sockshop.git
 
 - name: git-jmeter-as-container
   type: git
   source:
     branch: master
-    uri: https://github.com/acm-workshop/jmeter-as-container.git
+    uri: https://github.com/dynatrace-sockshop/jmeter-as-container.git
 
 - name: git-catalogue
   type: git
   source:
     branch: master
-    uri: https://github.com/acm-workshop-concourse/catalogue.git
+    uri: https://github.com/dynatrace-sockshop/catalogue.git
 
 - name: dynatrace
   type: dynatrace-resource
@@ -229,7 +229,6 @@ jobs:
       PCF_PWD: ((pcf-prod-deploy-password))
       PCF_SPACE: ((pcf-prod-space))           
   - task: run-load-tests
-    image: catalogue-test-image
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/load-tests.yml
     params:
       APP_REPO: git-catalogue
