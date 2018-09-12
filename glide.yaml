@@ -1,11 +1,5 @@
 package: .
 import:
-- package: cloud.google.com/go
-  version: daf945bb8684eb8df711af0c3e3a07930a2a01b0
-  repo: https://code.googlesource.com/gocloud
-  subpackages:
-  - compute/metadata
-  - internal
 - package: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
   repo: https://github.com/Shopify/sarama
@@ -246,13 +240,6 @@ import:
   subpackages:
   - cmd/cover
   - cover
-- package: google.golang.org/api
-  version: 16ab375f94503bfa0d19db78e96bffbe1a34354f
-  repo: https://code.googlesource.com/google-api-go-client
-  subpackages:
-  - compute/v1
-  - gensupport
-  - googleapi
 - package: google.golang.org/appengine
   version: b79c28f0197795b4050bfcd7c4c2209136c594b1
   repo: https://github.com/golang/appengine
