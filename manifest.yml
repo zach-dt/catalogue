@@ -3,9 +3,9 @@ applications:
 - name: APPNAME
   memory: 512M
   instances: 1
-  docker:
-    image: DOCKER_HUB_ACCOUNT/catalogue
+  buildpack: https://github.com/cloudfoundry/go-buildpack.git
   env:
+    GOPACKAGENAME: APPNAME
     DT_NODE_ID: APPNAME
     DT_CUSTOM_PROP: DEPLOYMENT_GRP_NAME=DTGRP DEPLOYMENT_COLOR=APPCOLOR
     DEPLOYMENT_GRP_NAME: DTGRP
