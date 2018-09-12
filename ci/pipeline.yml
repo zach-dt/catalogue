@@ -2,7 +2,7 @@
 groups:
 - name: catalogue-jobs
   jobs:
-  - build-catalogue
+#  - build-catalogue
   - deploy-catalogue-to-stage
   - health-check
   - deploy-catalogue-to-prod
@@ -46,12 +46,12 @@ resources:
     apitoken: ((apitoken))
     tenanthost: ((tenanthost))
 
-- name: catalogue-image
-  type: docker-image
-  source:
-    repository: ((docker-hub-username))/catalogue
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
+#- name: catalogue-image
+#  type: docker-image
+#  source:
+#    repository: ((docker-hub-username))/catalogue
+#    username: ((docker-hub-username))
+#    password: ((docker-hub-password))
 
 # PCF Environments
 
