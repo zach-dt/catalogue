@@ -1,13 +1,19 @@
 package: .
 import:
+- package: cloud.google.com/go
+  version: daf945bb8684eb8df711af0c3e3a07930a2a01b0
+  repo: https://code.googlesource.com/gocloud
+  subpackages:
+  - compute/metadata
+  - internal
 - package: github.com/Shopify/sarama
-  version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
+  version: v1.11.0
   repo: https://github.com/Shopify/sarama
 - package: github.com/Sirupsen/logrus
   version: 10f801ebc38b33738c9d17d50860f484a0988ff5
   repo: https://github.com/Sirupsen/logrus
 - package: github.com/VividCortex/gohistogram
-  version: 51564d9861991fb0ad0f531c99ef602d0f9866e6
+  version: v1.0.0
   repo: https://github.com/VividCortex/gohistogram
 - package: github.com/afex/hystrix-go
   version: 39520ddd07a9d9a071d615f7476798659f5a3b89
@@ -31,7 +37,7 @@ import:
   version: 7d649b46cdc2cd2ed102d350688a75a4fd7778c6
   repo: https://github.com/circonus-labs/circonusllhist
 - package: github.com/davecgh/go-spew
-  version: 346938d642f2ec3594ed81d874461961cd0faa76
+  version: v1.1.0
   repo: https://github.com/davecgh/go-spew
   subpackages:
   - spew
@@ -44,7 +50,7 @@ import:
   version: bb955e01b9346ac19dc29eb16586c90ded99a98c
   repo: https://github.com/eapache/go-xerial-snappy
 - package: github.com/eapache/queue
-  version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
+  version: v1.1.0
   repo: https://github.com/eapache/queue
 - package: github.com/felixge/httpsnoop
   version: 287b56e9e314227d3113c7c6b434d31aec68089d
@@ -61,13 +67,13 @@ import:
   - transport/http
   - util/conn
 - package: github.com/go-logfmt/logfmt
-  version: 390ab7935ee28ec6b286364bba9b4dd6410cb3d5
+  version: v0.3.0
   repo: https://github.com/go-logfmt/logfmt
 - package: github.com/go-sql-driver/mysql
-  version: a0583e0143b1624142adab07e0e97fe106d99561
+  version: v1.3
   repo: https://github.com/go-sql-driver/mysql
 - package: github.com/go-stack/stack
-  version: 100eb0c0a9c5b306ca2fb4f165df21d80ada4b82
+  version: v1.5.2
   repo: https://github.com/go-stack/stack
 - package: github.com/gogo/protobuf
   version: 84af2615df1ba1d35cc975ba94b64ee67d6c196e
@@ -98,7 +104,7 @@ import:
   version: 9af46dd5a1713e8b5cd71106287eba3cefdde50b
   repo: https://github.com/googleapis/gax-go
 - package: github.com/gorilla/context
-  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+  version: v1.1.1
   repo: https://github.com/gorilla/context
 - package: github.com/gorilla/mux
   version: 757bef944d0f21880861c2dd9c871ca543023cba
@@ -123,13 +129,13 @@ import:
   version: 648daed35d49dac24a4bff253b190a80da3ab6a5
   repo: https://github.com/kisielk/sqlstruct
 - package: github.com/klauspost/crc32
-  version: cb6bfca970f6908083f26f39a79009d608efd5cd
+  version: v1.1
   repo: https://github.com/klauspost/crc32
 - package: github.com/kr/logfmt
   version: b84e30acd515aadc4b783ad4ff83aff3299bdfe0
   repo: https://github.com/kr/logfmt
 - package: github.com/matttproud/golang_protobuf_extensions
-  version: c12348ce28de40eed0136aa2b644d0ee0650e56c
+  version: v1.0.1
   repo: https://github.com/matttproud/golang_protobuf_extensions
   subpackages:
   - pbutil
@@ -137,10 +143,10 @@ import:
   version: ac5446f53f2c0fc68dc16dc5f426eae1cd288b34
   repo: https://github.com/opentracing/opentracing-go
 - package: github.com/openzipkin/zipkin-go-opentracing
-  version: 594640b9ef7e5c994e8d9499359d693c032d738c
+  version: v0.2.2
   repo: https://github.com/openzipkin/zipkin-go-opentracing
 - package: github.com/openzipkin/zipkin-go-opentracing.git
-  version: 594640b9ef7e5c994e8d9499359d693c032d738c
+  version: v0.2.2
   repo: https://github.com/openzipkin/zipkin-go-opentracing.git
 - package: github.com/pborman/uuid
   version: 5007efa264d92316c43112bc573e754bc889b7b1
@@ -149,7 +155,7 @@ import:
   version: 6c862057c50f0d597c08fd8c58cf88376bb243f3
   repo: https://github.com/performancecopilot/speed
 - package: github.com/pierrec/lz4
-  version: 5c9560bfa9ace2bf86080bf40d46b34ae44604df
+  version: v1.0
   repo: https://github.com/pierrec/lz4
 - package: github.com/pierrec/xxHash
   version: 5a004441f897722c627870a981d02b29924215fa
@@ -184,7 +190,7 @@ import:
   version: 809bcd5a528f344e95c2368796c9225d128f9b3e
   repo: https://github.com/sony/gobreaker
 - package: github.com/stathat/go
-  version: 74669b9f388d9d788c97399a0824adbfee78400e
+  version: v1.0.0
   repo: https://github.com/stathat/go
 - package: github.com/streadway/handy
   version: f450267a206e480d863d2a92846a40f6e2896b2a
@@ -240,19 +246,27 @@ import:
   subpackages:
   - cmd/cover
   - cover
+- package: google.golang.org/api
+  version: 16ab375f94503bfa0d19db78e96bffbe1a34354f
+  repo: https://code.googlesource.com/google-api-go-client
+  subpackages:
+  - compute/v1
+  - gensupport
+  - googleapi
 - package: google.golang.org/appengine
   version: b79c28f0197795b4050bfcd7c4c2209136c594b1
   repo: https://github.com/golang/appengine
 - package: google.golang.org/grpc
-  version: cdee119ee21e61eef7093a41ba148fa83585e143
+  version: v1.2.0
   repo: https://github.com/grpc/grpc-go
 - package: gopkg.in/DATA-DOG/go-sqlmock.v1
-  version: d4cd2ca2ad1cc2130bba385aab072218f131f636
+  version: v1.1.4
   repo: https://gopkg.in/DATA-DOG/go-sqlmock.v1
 - package: gopkg.in/airbrake/gobrake.v2
-  version: 668876711219e8b0206e2994bf0a59d889c775aa
+  version: v2.0.9
   repo: https://gopkg.in/airbrake/gobrake.v2
 - package: gopkg.in/gemnasium/logrus-airbrake-hook.v2
-  version: bfee1239d796830ca346767650cce5ba90d58c57
+  version: v2.1.1
   repo: https://gopkg.in/gemnasium/logrus-airbrake-hook.v2
 - package: github.com/microservices-demo/catalogue
+  version: 0.3.5

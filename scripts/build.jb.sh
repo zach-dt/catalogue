@@ -16,13 +16,3 @@ cp -r $CODE_DIR/cmd/ $BUILD_DIR/docker/catalogue/cmd/
 cp $CODE_DIR/*.go $BUILD_DIR/docker/catalogue/
 mkdir -p $BUILD_DIR/docker/catalogue/vendor/ && \
 cp $CODE_DIR/vendor/manifest $BUILD_DIR/docker/catalogue/vendor/
-
-# docker build -t jbraeuer/catalogue:latest -f $BUILD_DIR/docker/catalogue/Dockerfile $BUILD_DIR/docker/catalogue;
-
-# docker build -t jbraeuer/catalogue-db:latest -f $BUILD_DIR/docker/catalogue-db/Dockerfile $BUILD_DIR/docker/catalogue-db/;
-
-# rm -rf $BUILD_DIR
-
-# docker push jbraeuer/catalogue:latest
-
-# docker push jbraeuer/catalogue-db:latest

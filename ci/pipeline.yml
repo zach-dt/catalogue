@@ -2,7 +2,7 @@
 groups:
 - name: catalogue-jobs
   jobs:
-#  - build-catalogue
+  - build-catalogue
   - deploy-catalogue-to-stage
   - health-check
   - deploy-catalogue-to-prod
@@ -53,6 +53,26 @@ resources:
 #    username: ((docker-hub-username))
 #    password: ((docker-hub-password))
 
+- name: catalogue-release-bucket
+  type: s3
+  source:
+    region_name: eu-west-1
+    regexp: catalogue/catalogue-(.*).txt
+    bucket: ((s3-bucket))
+    access_key_id: ((s3-access-key-id))
+    secret_access_key: ((s3-secret-access-key))
+
+- name: version
+  type: semver
+  source:
+    driver: s3
+    initial_version: 0.0.1
+    region_name: eu-west-1
+    bucket: ((s3-bucket))
+    access_key_id: ((s3-access-key-id))
+    secret_access_key: ((s3-secret-access-key))
+    key: catalogue/version
+
 # PCF Environments
 
 - name: pcf-stage
@@ -94,29 +114,36 @@ jobs:
 
 # CATALOGUE
 
-#- name: build-catalogue
-#  plan:
-#  - get: git-catalogue
-#    trigger: true
-#  - task: copy-dockerfile
-#    config:
-#      platform: linux
-#      image_resource:
-#        type: docker-image
-#        source: {repository: golang, tag: 1.7.1}
-#      inputs:
-#      - name: git-catalogue
-#      outputs:
-#      - name: workspace
-#      run:
-#        path: /bin/sh
-#        args:
-#        - -exc
-#        - |
-#          output_dir=workspace
-#          cp git-catalogue/docker/catalogue/Dockerfile "${output_dir}/Dockerfile"
-#          sh git-catalogue/scripts/build.jb.sh
-#          cp -R git-catalogue/build/docker/catalogue/ "${output_dir}/"
+- name: build-catalogue
+  plan:
+  - get: git-catalogue
+    trigger: true
+  - get: version
+    params: { bump: patch }
+  - task: copy-dockerfile
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: golang, tag: 1.7.1}
+      inputs:
+      - name: git-catalogue
+      - name: version
+      outputs:
+      - name: workspace
+      run:
+        path: /bin/sh
+        args:
+        - -exc
+        - |
+          output_dir=workspace
+          cp git-catalogue/docker/catalogue/Dockerfile "${output_dir}/Dockerfile"
+          sh git-catalogue/scripts/build.jb.sh
+          echo "binary to version" > "${output_dir}/catalogue-$(cat version/number).txt"
+          cp -R git-catalogue/build/docker/catalogue/ "${output_dir}/"
+  - put: catalogue-release-bucket
+    params: 
+      file: workspace/catalogue-*.txt
 #  - put: catalogue-image
 #    params:
 #      build: workspace
@@ -128,8 +155,8 @@ jobs:
   plan:
   - get: git-catalogue
     trigger: true
-#    passed:
-#      - build-catalogue
+    passed:
+      - build-catalogue
   - get: git-pipeline
     trigger: false      
   - task: prepare-app-manifest
@@ -280,6 +307,8 @@ jobs:
     trigger: true
     passed:
       - validate-catalogue-load-test
+  - get: version
+    params: { bump: patch }
   - get: git-pipeline
     trigger: false      
   - task: get-current-app-color
@@ -300,4 +329,6 @@ jobs:
       PCF_USER: ((pcf-prod-deploy-username))
       PCF_PWD: ((pcf-prod-deploy-password))
       PCF_SPACE: ((pcf-prod-space))
-      PCF_APP_DOMAIN: ((pcf-prod-app-domain))              
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+  - put: version
+    params: { file: version/number }       
