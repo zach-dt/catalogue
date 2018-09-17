@@ -144,19 +144,19 @@ jobs:
   - put: catalogue-release-bucket
     params: 
       file: workspace/catalogue-*.txt
-#  - put: catalogue-image
-#    params:
-#      build: workspace
-#      cache_tag: latest
+  - put: catalogue-image
+    params:
+      build: workspace
+      cache_tag: latest
 
 - name: deploy-catalogue-to-stage
   serial: true
   public: true
   plan:
   - get: git-catalogue
-    trigger: true
-    passed:
-      - build-catalogue
+#    trigger: true
+#    passed:
+#      - build-catalogue
   - get: git-pipeline
     trigger: false      
   - task: prepare-app-manifest
