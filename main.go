@@ -46,7 +46,7 @@ func main() {
 		port   = flag.String("port", "80", "Port to bind HTTP listener") // TODO(pb): should be -addr, default ":80"
 		images = flag.String("images", "./images/", "Image path")
 		// dsn    = flag.String("DSN", "n10FydAa4cAzCuEM:j704jboX96Gd7Eep@tcp(10.0.16.54:3306)/cf_30de0944_5018_482a_be58_c38effc51fd3", "Data Source Name: [username[:password]@][protocol[(address)]]/dbname")
-		//dsn    = flag.String("DSN", "catalogue_user:default_password@tcp(sockshop-catalogue-db.ckbkxcwrvff7.eu-west-1.rds.amazonaws.com:3306)/catalogue_db", "Data Source Name: [username[:password]@][protocol[(address)]]/dbname")
+		dsn    = flag.String("DSN", "catalogue_user:default_password@tcp(sockshop-catalogue-db.ckbkxcwrvff7.eu-west-1.rds.amazonaws.com:3306)/catalogue_db", "Data Source Name: [username[:password]@][protocol[(address)]]/dbname")
 		zip    = flag.String("zipkin", os.Getenv("ZIPKIN"), "Zipkin address")
 	)
 	flag.Parse()
@@ -67,8 +67,8 @@ func main() {
 	var logger log.Logger
 	{
 		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.NewContext(logger).With("ts", log.DefaultTimestampUTC)
-		logger = log.NewContext(logger).With("caller", log.DefaultCaller)
+		logger = log.With(logger, "ts", log.DefaultTimestampUTC)
+		logger = log.With(logger, "caller", log.DefaultCaller)
 	}
 
 	var tracer stdopentracing.Tracer
@@ -85,7 +85,7 @@ func main() {
 			localAddr := conn.LocalAddr().(*net.UDPAddr)
 			host := strings.Split(localAddr.String(), ":")[0]
 			defer conn.Close()
-			logger := log.NewContext(logger).With("tracer", "Zipkin")
+			logger := log.With(logger, "tracer", "Zipkin")
 			logger.Log("addr", zip)
 			collector, err := zipkin.NewHTTPCollector(
 				*zip,
