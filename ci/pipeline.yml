@@ -46,12 +46,12 @@ resources:
     apitoken: ((apitoken))
     tenanthost: ((tenanthost))
 
-#- name: catalogue-image
-#  type: docker-image
-#  source:
-#    repository: ((docker-hub-username))/catalogue
-#    username: ((docker-hub-username))
-#    password: ((docker-hub-password))
+- name: catalogue-image
+  type: docker-image
+  source:
+    repository: ((docker-hub-username))/catalogue
+    username: ((docker-hub-username))
+    password: ((docker-hub-password))
 
 - name: catalogue-release-bucket
   type: s3
@@ -140,6 +140,7 @@ jobs:
           cp git-catalogue/docker/catalogue/Dockerfile "${output_dir}/Dockerfile"
           sh git-catalogue/scripts/build.jb.sh
           echo "binary to version" > "${output_dir}/catalogue-$(cat version/number).txt"
+          cp git-catalogue/glide.yaml git-catalogue/build/docker/catalogue/glide.yaml
           cp -R git-catalogue/build/docker/catalogue/ "${output_dir}/"
   - put: catalogue-release-bucket
     params: 
