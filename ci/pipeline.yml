@@ -154,9 +154,9 @@ jobs:
   public: true
   plan:
   - get: git-catalogue
-#    trigger: true
-#    passed:
-#      - build-catalogue
+    trigger: true
+    passed:
+      - build-catalogue
   - get: git-pipeline
     trigger: false      
   - task: prepare-app-manifest
