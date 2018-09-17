@@ -23,12 +23,9 @@ ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
 COPY catalogue/ /go/src/github.com/microservices-demo/catalogue
 WORKDIR /go/src/github.com/microservices-demo/catalogue
 
-RUN go get -v github.com/Masterminds/glide 
-RUN glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /user github.com/microservices-demo/catalogue/cmd/cataloguesvc
-
-#RUN go get -u github.com/FiloSottile/gvt
-#RUN gvt restore && \
-#    GOOS=linux go build -a -ldflags -linkmode=external -ldflags -linkmode=external -installsuffix cgo -o /app github.com/microservices-demo/catalogue/cmd/cataloguesvc
+RUN go get -u github.com/FiloSottile/gvt
+RUN gvt restore && \
+    GOOS=linux go build -a -ldflags -linkmode=external -ldflags -linkmode=external -installsuffix cgo -o /app github.com/microservices-demo/catalogue/cmd/cataloguesvc
 
 WORKDIR /
 COPY catalogue/images/ /images/

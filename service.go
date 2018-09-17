@@ -1,4 +1,4 @@
-package api
+package catalogue
 
 // service.go contains the definition and implementation (business logic) of the
 // catalogue service. Everything here is agnostic to the transport (HTTP).
