@@ -4,11 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"net"
-	//"net/http"
+	"net/http"
 	"os"
-	//"os/signal"
+	"os/signal"
 	"strings"
-	//"syscall"
+	"syscall"
 
 	"github.com/go-kit/kit/log"
 
@@ -17,11 +17,11 @@ import (
 
 	"path/filepath"
 
-	//_ "github.com/go-sql-driver/mysql"
-	//"github.com/jmoiron/sqlx"
-	//"github.com/dynatrace-sockshop/catalogue/api"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+	"github.com/dynatrace-sockshop/catalogue/api"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
-	//"github.com/weaveworks/common/middleware"
+	"github.com/weaveworks/common/middleware"
 	"golang.org/x/net/context"
 )
 
@@ -105,7 +105,7 @@ func main() {
 		}
 		stdopentracing.InitGlobalTracer(tracer)
 	}
-/*
+
 	// Data domain.
 	fmt.Print("Connect to DB")
 	db, err := sqlx.Open("mysql", *dsn)
@@ -160,5 +160,5 @@ func main() {
 	}()
 
 	logger.Log("exit", <-errc)
-*/
+
 }
