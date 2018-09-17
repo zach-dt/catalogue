@@ -1,4 +1,4 @@
-package catalogue
+package api
 
 // transport.go contains the binding from endpoints to a concrete transport.
 // In our case we just use a REST-y HTTP transport.
@@ -11,7 +11,6 @@ import (
 	"time"
 	"context"
 	
-
 	"github.com/go-kit/kit/circuitbreaker"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/tracing/opentracing"
