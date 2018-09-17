@@ -62,25 +62,33 @@ func main() {
 	// Mechanical stuff.
 	errc := make(chan error)
 	ctx := context.Background()
-
+/*
 	// Log domain.
-	/*
 	var logger log.Logger
 	{
 		logger = log.NewLogfmtLogger(os.Stderr)
-		logger = log.With(logger, "ts", log.DefaultTimestampUTC)
-		logger = log.With(logger, "caller", log.DefaultCaller)
+		logger = log.NewContext(logger).With("ts", log.DefaultTimestampUTC)
+		logger = log.NewContext(logger).With("caller", log.DefaultCaller)
 	}
-*/
+
 	var tracer stdopentracing.Tracer
 	{
-		if zip == "" {
+		if *zip == "" {
 			tracer = stdopentracing.NoopTracer{}
 		} else {
-			logger := log.With(logger, "tracer", "Zipkin")
+			// Find service local IP.
+			conn, err := net.Dial("udp", "8.8.8.8:80")
+			if err != nil {
+				logger.Log("err", err)
+				os.Exit(1)
+			}
+			localAddr := conn.LocalAddr().(*net.UDPAddr)
+			host := strings.Split(localAddr.String(), ":")[0]
+			defer conn.Close()
+			logger := log.NewContext(logger).With("tracer", "Zipkin")
 			logger.Log("addr", zip)
 			collector, err := zipkin.NewHTTPCollector(
-				zip,
+				*zip,
 				zipkin.HTTPLogger(logger),
 			)
 			if err != nil {
@@ -152,5 +160,5 @@ func main() {
 	}()
 
 	logger.Log("exit", <-errc)
-
+*/
 }
