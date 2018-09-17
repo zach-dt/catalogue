@@ -1,6 +1,7 @@
 package: github.com/dynatrace-sockshop/catalogue
 import:
 - package: github.com/go-kit/kit
+  version: v0.4.0
   subpackages:
   - circuitbreaker
   - endpoint

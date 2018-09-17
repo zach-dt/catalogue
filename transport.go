@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-
 	"github.com/go-kit/kit/circuitbreaker"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/tracing/opentracing"
