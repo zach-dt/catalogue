@@ -6,6 +6,7 @@ applications:
   buildpack: https://github.com/cloudfoundry/go-buildpack.git
   env:
     GOPACKAGENAME: APPNAME
+    APP_PORT: 8080
     DT_NODE_ID: APPNAME
     DT_CUSTOM_PROP: DEPLOYMENT_GRP_NAME=DTGRP DEPLOYMENT_COLOR=APPCOLOR
     DEPLOYMENT_GRP_NAME: DTGRP
