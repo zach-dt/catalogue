@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"context"
 	
 
 	"github.com/go-kit/kit/circuitbreaker"
@@ -19,7 +20,6 @@ import (
 	stdopentracing "github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sony/gobreaker"
-	"golang.org/x/net/context"
 )
 
 // MakeHTTPHandler mounts the endpoints into a REST-y HTTP handler.
@@ -37,7 +37,6 @@ func MakeHTTPHandler(ctx context.Context, e Endpoints, imagePath string, logger 
 	// GET /health		Health Check
 
 	r.Methods("GET").Path("/catalogue").Handler(httptransport.NewServer(
-		ctx,
 		circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{
 			Name:    "List",
 			Timeout: 30 * time.Second,
@@ -47,7 +46,6 @@ func MakeHTTPHandler(ctx context.Context, e Endpoints, imagePath string, logger 
 		append(options, httptransport.ServerBefore(opentracing.FromHTTPRequest(tracer, "GET /catalogue", logger)))...,
 	))
 	r.Methods("GET").Path("/catalogue/size").Handler(httptransport.NewServer(
-		ctx,
 		circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{
 			Name:    "Count",
 			Timeout: 30 * time.Second,
@@ -57,7 +55,6 @@ func MakeHTTPHandler(ctx context.Context, e Endpoints, imagePath string, logger 
 		append(options, httptransport.ServerBefore(opentracing.FromHTTPRequest(tracer, "GET /catalogue/size", logger)))...,
 	))
 	r.Methods("GET").Path("/catalogue/{id}").Handler(httptransport.NewServer(
-		ctx,
 		circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{
 			Name:    "Get",
 			Timeout: 30 * time.Second,
@@ -67,7 +64,6 @@ func MakeHTTPHandler(ctx context.Context, e Endpoints, imagePath string, logger 
 		append(options, httptransport.ServerBefore(opentracing.FromHTTPRequest(tracer, "GET /catalogue/{id}", logger)))...,
 	))
 	r.Methods("GET").Path("/tags").Handler(httptransport.NewServer(
-		ctx,
 		circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{
 			Name:    "Tags",
 			Timeout: 30 * time.Second,
@@ -81,7 +77,6 @@ func MakeHTTPHandler(ctx context.Context, e Endpoints, imagePath string, logger 
 		http.FileServer(http.Dir(imagePath)),
 	))
 	r.Methods("GET").PathPrefix("/health").Handler(httptransport.NewServer(
-		ctx,
 		circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{
 			Name:    "Health",
 			Timeout: 30 * time.Second,
