@@ -25,15 +25,6 @@ imports:
   version: bb955e01b9346ac19dc29eb16586c90ded99a98c
 - name: github.com/eapache/queue
   version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
-- name: github.com/felixge/httpsnoop
-  version: 287b56e9e314227d3113c7c6b434d31aec68089d
-- name: github.com/globalsign/mgo
-  version: 46bcd340f9a57a05cb5c6cf9b0b61b1c43f6ae06
-  subpackages:
-  - bson
-  - internal/json
-  - internal/sasl
-  - internal/scram
 - name: github.com/go-kit/kit
   version: fadad6fffe0466b19df9efd9acde5c9a52df5fa4
   subpackages:
