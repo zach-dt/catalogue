@@ -19,7 +19,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/microservices-demox/catalogue"
+	"github.com/dynatrace-sockshop/catalogue"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/middleware"
 	"golang.org/x/net/context"

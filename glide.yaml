@@ -10,7 +10,7 @@ import:
 - package: github.com/go-sql-driver/mysql
 - package: github.com/gorilla/mux
 - package: github.com/jmoiron/sqlx
-- package: github.com/microservices-demox/catalogue
+- package: github.com/dynatrace-sockshop/catalogue
 - package: github.com/opentracing/opentracing-go
 - package: github.com/openzipkin/zipkin-go-opentracing
 - package: github.com/prometheus/client_golang
