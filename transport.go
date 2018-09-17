@@ -4,12 +4,12 @@ package catalogue
 // In our case we just use a REST-y HTTP transport.
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+	
 
 	"github.com/go-kit/kit/circuitbreaker"
 	"github.com/go-kit/kit/log"
@@ -19,6 +19,7 @@ import (
 	stdopentracing "github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sony/gobreaker"
+	"golang.org/x/net/context"
 )
 
 // MakeHTTPHandler mounts the endpoints into a REST-y HTTP handler.
