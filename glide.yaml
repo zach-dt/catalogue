@@ -1,7 +1,6 @@
 package: github.com/dynatrace-sockshop/catalogue
 import:
 - package: github.com/go-kit/kit
-  version: v0.4.0
   subpackages:
   - circuitbreaker
   - endpoint
@@ -21,8 +20,5 @@ import:
 - package: github.com/weaveworks/common
   subpackages:
   - middleware
-- package: golang.org/x/net
-  subpackages:
-  - context
 testImport:
 - package: gopkg.in/DATA-DOG/go-sqlmock.v1
