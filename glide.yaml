@@ -13,6 +13,7 @@ import:
 - package: github.com/jmoiron/sqlx
 - package: github.com/opentracing/opentracing-go
 - package: github.com/openzipkin/zipkin-go-opentracing
+- package: github.com/sirupsen/logrus
 - package: github.com/prometheus/client_golang
   subpackages:
   - prometheus
