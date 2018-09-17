@@ -15,7 +15,7 @@ import (
 	//stdopentracing "github.com/opentracing/opentracing-go"
 	//zipkin "github.com/openzipkin/zipkin-go-opentracing"
 
-	//"path/filepath"
+	"path/filepath"
 
 	//_ "github.com/go-sql-driver/mysql"
 	//"github.com/jmoiron/sqlx"
