@@ -3,24 +3,24 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
 	"github.com/go-kit/kit/log"
+
 	stdopentracing "github.com/opentracing/opentracing-go"
 	zipkin "github.com/openzipkin/zipkin-go-opentracing"
-
-	"net"
-	"net/http"
 
 	"path/filepath"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/dynatrace-sockshop/catalogue/api"
-	"github.com/prometheus/client_golang/prometheus"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/middleware"
 	"golang.org/x/net/context"
 )
@@ -30,15 +30,15 @@ const (
 )
 
 var (
-	HTTPLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	HTTPLatency = stdprometheus.NewHistogramVec(stdprometheus.HistogramOpts{
 		Name:    "http_request_duration_seconds",
 		Help:    "Time (in seconds) spent serving HTTP requests.",
-		Buckets: prometheus.DefBuckets,
+		Buckets: stdprometheus.DefBuckets,
 	}, []string{"method", "path", "status_code", "isWS"})
 )
 
 func init() {
-	prometheus.MustRegister(HTTPLatency)
+	stdprometheus.MustRegister(HTTPLatency)
 }
 
 func main() {
