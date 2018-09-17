@@ -19,7 +19,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/dynatrace-sockshop/catalogue"
+	"github.com/dynatrace-sockshop/catalogue/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/middleware"
 	"golang.org/x/net/context"
@@ -124,17 +124,17 @@ func main() {
 	}
 
 	// Service domain.
-	var service catalogue.Service
+	var service api.Service
 	{
-		service = catalogue.NewCatalogueService(db, logger)
-		service = catalogue.LoggingMiddleware(logger)(service)
+		service = api.NewCatalogueService(db, logger)
+		service = api.LoggingMiddleware(logger)(service)
 	}
 
 	// Endpoint domain.
-	endpoints := catalogue.MakeEndpoints(service, tracer)
+	endpoints := api.MakeEndpoints(service, tracer)
 
 	// HTTP router
-	router := catalogue.MakeHTTPHandler(ctx, endpoints, *images, logger, tracer)
+	router := api.MakeHTTPHandler(ctx, endpoints, *images, logger, tracer)
 
 	httpMiddleware := []middleware.Interface{
 		middleware.Instrument{
