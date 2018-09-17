@@ -5,11 +5,11 @@ import:
   subpackages:
   - endpoint
   - log
+  - metrics
+  - metrics/prometheus
   - tracing/opentracing
   - transport/http
   - circuitbreaker
-- package: github.com/go-sql-driver/mysql
-- package: github.com/jmoiron/sqlx
 - package: github.com/gorilla/mux
 - package: github.com/opentracing/opentracing-go
 - package: github.com/openzipkin/zipkin-go-opentracing
@@ -17,13 +17,13 @@ import:
   subpackages:
   - prometheus
   - prometheus/promhttp
-- package: github.com/sony/gobreaker
-- package: golang.org/x/net
+- package: github.com/globalsign/mgo
   subpackages:
-  - context
+  - bson
+- package: github.com/afex/hystrix-go
+  subpackages:
+  - hystrix
+- package: github.com/felixge/httpsnoop
 - package: github.com/weaveworks/common
   subpackages:
   - middleware
-testImport:
-- package: gopkg.in/DATA-DOG/go-sqlmock.v1
-

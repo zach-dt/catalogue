@@ -21,8 +21,8 @@ import (
 	//"github.com/jmoiron/sqlx"
 	//"github.com/dynatrace-sockshop/catalogue/api"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
-	"github.com/weaveworks/common/middleware"
-	"golang.org/x/net/context"
+	//"github.com/weaveworks/common/middleware"
+	//"golang.org/x/net/context"
 )
 
 const (
