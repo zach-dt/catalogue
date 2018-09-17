@@ -10,6 +10,8 @@ import:
   - tracing/opentracing
   - transport/http
   - circuitbreaker
+- package: github.com/go-sql-driver/mysql
+- package: github.com/jmoiron/sqlx
 - package: github.com/gorilla/mux
 - package: github.com/opentracing/opentracing-go
 - package: github.com/openzipkin/zipkin-go-opentracing
@@ -17,9 +19,7 @@ import:
   subpackages:
   - prometheus
   - prometheus/promhttp
-- package: github.com/globalsign/mgo
-  subpackages:
-  - bson
+- package: github.com/sony/gobreaker
 - package: github.com/afex/hystrix-go
   subpackages:
   - hystrix
@@ -27,3 +27,7 @@ import:
 - package: github.com/weaveworks/common
   subpackages:
   - middleware
+- package: golang.org/x/net
+  subpackages:
+  - context
+

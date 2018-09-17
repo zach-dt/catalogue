@@ -22,7 +22,7 @@ import (
 	//"github.com/dynatrace-sockshop/catalogue/api"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	//"github.com/weaveworks/common/middleware"
-	//"golang.org/x/net/context"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -58,7 +58,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "Getwd: %q (%v)\n", pwd, err)
 	files, _ := filepath.Glob(*images + "/*")
 	fmt.Fprintf(os.Stderr, "ls: %q\n", files) // contains a list of all files in the current directory
-/*
+
 	// Mechanical stuff.
 	errc := make(chan error)
 	ctx := context.Background()
@@ -70,7 +70,7 @@ func main() {
 		logger = log.NewContext(logger).With("ts", log.DefaultTimestampUTC)
 		logger = log.NewContext(logger).With("caller", log.DefaultCaller)
 	}
-
+/*
 	var tracer stdopentracing.Tracer
 	{
 		if *zip == "" {
