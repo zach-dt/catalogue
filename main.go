@@ -62,7 +62,7 @@ func main() {
 	// Mechanical stuff.
 	errc := make(chan error)
 	ctx := context.Background()
-/*
+
 	// Log domain.
 	var logger log.Logger
 	{
@@ -160,5 +160,5 @@ func main() {
 	}()
 
 	logger.Log("exit", <-errc)
-*/
+
 }
