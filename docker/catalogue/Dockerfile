@@ -12,7 +12,7 @@ RUN apt-get install -y ca-certificates
 
 # Install GO
 RUN apt-get update -y && apt-get install --no-install-recommends -y -q curl build-essential ca-certificates git mercurial bzr
-RUN mkdir /go && curl https://storage.googleapis.com/golang/go1.7.3.linux-amd64.tar.gz | tar xvzf - -C /go --strip-components=1
+RUN mkdir /go && curl https://storage.googleapis.com/golang/go1.8.7.linux-amd64.tar.gz | tar xvzf - -C /go --strip-components=1
 RUN mkdir /gopath
 
 ENV GOROOT /go
