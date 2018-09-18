@@ -20,19 +20,25 @@ ENV GOPATH /gopath
 ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
 
 # Build app
-COPY catalogue/ /go/src/github.com/microservices-demo/catalogue
+COPY . /go/src/github.com/microservices-demo/catalogue
 WORKDIR /go/src/github.com/microservices-demo/catalogue
 
-RUN go get -u github.com/FiloSottile/gvt
-RUN gvt restore && \
-    GOOS=linux go build -a -ldflags -linkmode=external -ldflags -linkmode=external -installsuffix cgo -o /app github.com/microservices-demo/catalogue/cmd/cataloguesvc
+#RUN go get -u github.com/FiloSottile/gvt
+#RUN gvt restore && \
+#    GOOS=linux go build -a -ldflags -linkmode=external -ldflags -linkmode=external -installsuffix cgo -o /app github.com/microservices-demo/catalogue/cmd/cataloguesvc
+
+RUN go get -v github.com/Masterminds/glide 
+RUN glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /app main.go
+
 
 WORKDIR /
-COPY catalogue/images/ /images/
+COPY ./images/ /images/
 
 RUN    chmod +x /app && \
     chown -R ${SERVICE_USER}:${SERVICE_GROUP} /app /images && \
     setcap 'cap_net_bind_service=+ep' /app
+
+ENV APP_PORT 8080
 
 USER ${SERVICE_USER}
 
