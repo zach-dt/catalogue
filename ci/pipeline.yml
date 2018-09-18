@@ -46,18 +46,18 @@ resources:
     apitoken: ((apitoken))
     tenanthost: ((tenanthost))
 
-- name: catalogue-image
-  type: docker-image
-  source:
-    repository: ((docker-hub-username))/catalogue
-    username: ((docker-hub-username))
-    password: ((docker-hub-password))
+#- name: catalogue-image
+#  type: docker-image
+#  source:
+#    repository: ((docker-hub-username))/catalogue
+#    username: ((docker-hub-username))
+#    password: ((docker-hub-password))
 
 - name: catalogue-release-bucket
   type: s3
   source:
     region_name: eu-west-1
-    regexp: catalogue/catalogue-(.*).txt
+    regexp: catalogue/catalogue-(.*)
     bucket: ((s3-bucket))
     access_key_id: ((s3-access-key-id))
     secret_access_key: ((s3-secret-access-key))
@@ -120,12 +120,12 @@ jobs:
     trigger: true
   - get: version
     params: { bump: patch }
-  - task: copy-dockerfile
+  - task: build-catalogue-binary
     config:
       platform: linux
       image_resource:
         type: docker-image
-        source: {repository: golang, tag: 1.7.1}
+        source: {repository: golang, tag: 1.8.7} 
       inputs:
       - name: git-catalogue
       - name: version
@@ -136,20 +136,39 @@ jobs:
         args:
         - -exc
         - |
+          # output_dir=workspace
+          # rm git-catalogue/Dockerfile
+          # cp git-catalogue/docker/catalogue/Dockerfile "${output_dir}/Dockerfile"
+          # sh git-catalogue/scripts/build.jb.sh
+          # echo "binary to version" > "${output_dir}/catalogue-$(cat version/number).txt"
+          # cp git-catalogue/glide.yaml git-catalogue/build/docker/catalogue/glide.yaml
+          # cp -R git-catalogue/* "${output_dir}/"
+
           output_dir=workspace
-          rm git-catalogue/Dockerfile
-          cp git-catalogue/docker/catalogue/Dockerfile "${output_dir}/Dockerfile"
-          #sh git-catalogue/scripts/build.jb.sh
-          echo "binary to version" > "${output_dir}/catalogue-$(cat version/number).txt"
-          #cp git-catalogue/glide.yaml git-catalogue/build/docker/catalogue/glide.yaml
-          cp -R git-catalogue/* "${output_dir}/"
+          export WORKDIR=$PWD
+          
+          cd workspace
+          export GOPATH=$PWD
+          mkdir -p src/github.com/dynatrace-sockshop/catalogue/
+          cp -R ../git-catalogue/* src/github.com/dynatrace-sockshop/catalogue/.
+          cd src/github.com/dynatrace-sockshop/catalogue/
+          
+          apt-get update
+          apt-get install git
+          go get -v github.com/Masterminds/glide
+          cd $GOPATH/src/github.com/Masterminds/glide
+          make build
+          export PATH=$PATH:$GOPATH/src/github.com/Masterminds/glide
+          
+          cd $GOPATH/src/github.com/dynatrace-sockshop/catalogue/
+          glide install && CGO_ENABLED=0 go build -a -installsuffix cgo -o catalogue main.go
+          
+          cd $WORKDIR
+          cp $GOPATH/src/github.com/dynatrace-sockshop/catalogue/catalogue "${output_dir}/"
+          mv ${output_dir}/catalogue ${output_dir}/catalogue-$(cat version/number)
   - put: catalogue-release-bucket
     params: 
-      file: workspace/catalogue-*.txt
-  - put: catalogue-image
-    params:
-      build: workspace
-      cache_tag: latest
+      file: workspace/catalogue-*
 
 - name: deploy-catalogue-to-stage
   serial: true
@@ -300,7 +319,6 @@ jobs:
       apitoken: ((apitoken))
       tenanthost: ((tenanthost))
       APP_REPO: git-catalogue     
-
 
 - name: promote-new-version-catalogue
   serial: true
