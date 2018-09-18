@@ -20,25 +20,24 @@ ENV GOPATH /gopath
 ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
 
 # Build app
-COPY . /go/src/github.com/microservices-demo/catalogue
-WORKDIR /go/src/github.com/microservices-demo/catalogue
+COPY . /go/src/github.com/dynatrace-sockshop/catalogue
+WORKDIR /go/src/github.com/dynatrace-sockshop/catalogue
 
 #RUN go get -u github.com/FiloSottile/gvt
 #RUN gvt restore && \
 #    GOOS=linux go build -a -ldflags -linkmode=external -ldflags -linkmode=external -installsuffix cgo -o /app github.com/microservices-demo/catalogue/cmd/cataloguesvc
 
 RUN go get -v github.com/Masterminds/glide 
-RUN glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /app main.go
+RUN glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go
 
+ENV APP_PORT 8080
 
 WORKDIR /
 COPY ./images/ /images/
 
-RUN    chmod +x /app && \
-    chown -R ${SERVICE_USER}:${SERVICE_GROUP} /app /images && \
-    setcap 'cap_net_bind_service=+ep' /app
-
-ENV APP_PORT 8080
+RUN    chmod +x /catalogue && \
+    chown -R ${SERVICE_USER}:${SERVICE_GROUP} /catalogue /images && \
+    setcap 'cap_net_bind_service=+ep' /catalogue
 
 USER ${SERVICE_USER}
 
@@ -56,5 +55,5 @@ LABEL org.label-schema.vendor="Dynatrace" \
   org.label-schema.vcs-ref="${COMMIT}" \
   org.label-schema.schema-version="1.0"
 
-CMD ["/app", "-port=8080"]
+CMD ["/catalogue", "-port=8080"]
 EXPOSE 8080

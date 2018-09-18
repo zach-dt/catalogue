@@ -142,7 +142,6 @@ jobs:
           #sh git-catalogue/scripts/build.jb.sh
           echo "binary to version" > "${output_dir}/catalogue-$(cat version/number).txt"
           #cp git-catalogue/glide.yaml git-catalogue/build/docker/catalogue/glide.yaml
-          
           cp -R git-catalogue/* "${output_dir}/"
   - put: catalogue-release-bucket
     params: 
@@ -157,9 +156,9 @@ jobs:
   public: true
   plan:
   - get: git-catalogue
-#    trigger: true
-#    passed:
-#      - build-catalogue
+    trigger: true
+    passed:
+      - build-catalogue
   - get: git-pipeline
     trigger: false      
   - task: prepare-app-manifest
