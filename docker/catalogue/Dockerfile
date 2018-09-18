@@ -30,7 +30,7 @@ WORKDIR /go/src/github.com/dynatrace-sockshop/catalogue
 RUN go get -v github.com/Masterminds/glide 
 #RUN glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go
 RUN glide install
-RUN go build
+RUN go install -tags cloudfoundry -buildmode pie .
 
 ENV APP_PORT 8080
 
