@@ -31,6 +31,7 @@ RUN go get -v github.com/Masterminds/glide
 RUN glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go
 
 ENV APP_PORT 8080
+ENV DB_DSN "catalogue_user:default_password@tcp(sockshop-catalogue-db.ckbkxcwrvff7.eu-west-1.rds.amazonaws.com:3306)/catalogue_db"
 
 WORKDIR /
 COPY ./images/ /images/
