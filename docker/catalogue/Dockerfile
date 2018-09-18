@@ -28,9 +28,7 @@ WORKDIR /go/src/github.com/dynatrace-sockshop/catalogue
 #    GOOS=linux go build -a -ldflags -linkmode=external -ldflags -linkmode=external -installsuffix cgo -o /app github.com/microservices-demo/catalogue/cmd/cataloguesvc
 
 RUN go get -v github.com/Masterminds/glide 
-#RUN glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go
-RUN glide install
-RUN go install -tags cloudfoundry -buildmode pie .
+RUN glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go
 
 ENV APP_PORT 8080
 
