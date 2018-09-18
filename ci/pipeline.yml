@@ -236,7 +236,8 @@ jobs:
       APP_REPO: git-catalogue      
   - put: pcf-production
     params:
-        manifest: app-manifest-output/manifest.yml 
+      path: git-catalogue
+      manifest: app-manifest-output/manifest.yml 
 
 - name: execute-catalogue-load-tests
   serial: true
