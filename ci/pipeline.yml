@@ -123,7 +123,7 @@ jobs:
   - get: git-catalogue
     trigger: true
   - get: version
-    params: { pre: build }
+    params: { pre: rc }
   - task: build-catalogue-binary
     config:
       platform: linux
@@ -269,6 +269,7 @@ jobs:
       trigger: true
       passed:
         - deploy-catalogue-to-prod
+    - get: git-jmeter-as-container
     - get: git-pipeline
       trigger: false        
   - task: get-current-app-color
@@ -280,13 +281,18 @@ jobs:
       PCF_USER: ((pcf-prod-deploy-username))
       PCF_PWD: ((pcf-prod-deploy-password))
       PCF_SPACE: ((pcf-prod-space))           
-  - task: run-load-tests
+  - task: run-load-test
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/load-tests.yml
     params:
-      APP_REPO: git-catalogue
+      APP_REPO: git-jmeter-as-container
+      FUNC_VALIDATION: yes
       PRODUCTION: true
+      SCRIPT_NAME: catalogue_load.jmx
       PCF_APP_SUFFIX: ((pcf-prod-catalogue-suffix))
-      PCF_APP_DOMAIN: ((pcf-prod-app-domain))   
+      PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+      DT_LTN: LoadTest
+      VUCount: 5
+      LoopCount: 20   
   - task: push-dynatrace-monspec-data
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
     params: 
