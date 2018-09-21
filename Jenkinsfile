@@ -99,7 +99,7 @@ pipeline {
         steps {              
           container('dtcli') {
             checkout scm
-
+            sh "echo 'push deployment event to dynatrace'"
             sh "python3 /dtcli/dtcli.py config apitoken ${DT_API_TOKEN} tenanthost ${DT_TENANT_URL}"
             sh "python3 /dtcli/dtcli.py monspec pushdeploy monspec/catalogue_monspec.json monspec/catalogue_pipelineinfo.json catalogue/Staging JenkinsBuild_${BUILD_NUMBER} ${BUILD_NUMBER}"
           }
