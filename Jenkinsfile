@@ -92,7 +92,6 @@ pipeline {
           }
         }
       }
-<<<<<<< HEAD
 //      stage('DT Deploy Event') {
 //        agent {
 //          label "jenkins-dtcli"
@@ -157,72 +156,6 @@ pipeline {
 //            ]
 //        }
 //      }
-=======
-      stage('DT Deploy Event') {
-        agent {
-          label "jenkins-dtcli"
-        }
-        steps {              
-          container('dtcli') {
-            checkout scm
-            sh "echo 'push deployment event to dynatrace'"
-            sh "python3 /dtcli/dtcli.py config apitoken ${DT_API_TOKEN} tenanthost ${DT_TENANT_URL}"
-            sh "python3 /dtcli/dtcli.py monspec pushdeploy monspec/catalogue_monspec.json monspec/catalogue_pipelineinfo.json catalogue/Staging JenkinsBuild_${BUILD_NUMBER} ${BUILD_NUMBER}"
-          }
-        }
-      }
-      stage('Health Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-tests/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '1'),
-              string(name: 'LoopCount', value: '1'),
-              string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'yes'),
-              string(name: 'AVG_RT_VALIDATION', value: '0')
-            ]
-        }
-      }
-      stage('Functional Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-tests/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '1'),
-              string(name: 'LoopCount', value: '1'),
-              string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'yes'),
-              string(name: 'AVG_RT_VALIDATION', value: '0')
-            ]
-        }
-      }
-      stage('Performance Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-tests/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '10'),
-              string(name: 'LoopCount', value: '250'),
-              string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'no'),
-              string(name: 'AVG_RT_VALIDATION', value: '250')
-            ]
-        }
-      }
->>>>>>> 033a8a4c674ea510fcb19cf34e4426d73be36dcb
     }
     post {
         always {
