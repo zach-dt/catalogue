@@ -9,6 +9,7 @@ groups:
   - execute-catalogue-load-tests
   - validate-catalogue-load-test
   - promote-new-version-catalogue
+  - upload-catalogue-git-release
 
 - name: init-dynatrace
   jobs: 
@@ -22,6 +23,15 @@ resource_types:
 
 resources:
 
+#GitHub Release Repository
+- name: catalogue-release
+  type: github-release
+  source:
+    owner: acm-workshop-concourse
+    repository: catalogue
+    access_token: ((github-access-token))
+
+# GitHub Repositories
 - name: git-pipeline
   type: git
   source:
@@ -65,13 +75,6 @@ resources:
 - name: version
   type: semver
   source:
-#    driver: s3
-#    initial_version: 0.0.1
-#    region_name: eu-west-1
-#    bucket: ((s3-bucket))
-#    access_key_id: ((s3-access-key-id))
-#    secret_access_key: ((s3-secret-access-key))
-#    key: catalogue/version
     driver: git
     uri: https://github.com/((workshop-repository))/catalogue.git
     branch: master
@@ -211,7 +214,7 @@ jobs:
         - deploy-catalogue-to-stage
     - get: git-jmeter-as-container
     - get: git-pipeline
-  - task: run-load-tests
+  - task: run-health-check
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/health-test.yml
     params:
       APP_REPO: git-jmeter-as-container
@@ -359,5 +362,28 @@ jobs:
       PCF_PWD: ((pcf-prod-deploy-password))
       PCF_SPACE: ((pcf-prod-space))
       PCF_APP_DOMAIN: ((pcf-prod-app-domain))
+
+- name: upload-catalogue-git-release
+  public: true
+  plan:
+  - aggregate:
+    - get: git-catalogue
+      trigger: true
+      passed: 
+        - promote-new-version-catalogue
+    - get: catalogue-release-bucket
+    - get: git-pipeline
+    - get: version
+      params: { pre: build }
+  - task: create-catalogue-release-info
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/prepare-release.yml
+    params:
+      APP_NAME: catalogue
+  - put: catalogue-release
+    params:
+      name: prepared-release/name
+      tag: prepared-release/tag
+      globs:
+      - catalogue-release-bucket/catalogue-*.jar
 #  - put: version
-#    params: { file: version/number }       
+#    params: { file: version/number }    
