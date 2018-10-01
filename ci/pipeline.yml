@@ -338,7 +338,7 @@ jobs:
   - get: git-catalogue
     trigger: true
     passed:
-      - validate-catalogue-load-test
+      - execute-catalogue-load-tests
   - get: version
     params: { bump: patch }
   - get: git-pipeline
