@@ -88,75 +88,118 @@ pipeline {
 
               // promote through all 'Auto' promotion Environments
               sh 'jx promote -b --env staging --timeout 1h --version \$(cat ../../VERSION) $APP_NAME'
+
+              // just a quick curl against the deployed app
+              sh "curl http://${env.APP_NAME}.${APP_STAGING_DOMAIN} || true"
             }
           }
         }
       }
-     stage('DT Deploy Event') {
-       agent {
-         label "jenkins-dtcli"
-       }
-       steps {              
-         container('dtcli') {
-           checkout scm
+    stage('DT Deploy Event') {
+      // #1 we can either push the deployment event via the Dynatrace CLI and using Monspec
+      /*agent {
+        label "jenkins-dtcli"
+      }
+      steps {              
+        container('dtcli') {
+          checkout scm
 
-           sh "python3 /dtcli/dtcli.py config apitoken ${DT_API_TOKEN} tenanthost ${DT_TENANT_URL}"
-           sh "python3 /dtcli/dtcli.py monspec pushdeploy monspec/catalogue_monspec.json monspec/catalogue_pipelineinfo.json catalogue/Staging JenkinsBuild_${BUILD_NUMBER} ${BUILD_NUMBER}"
-         }
-       }
-     }
-//      stage('Health Check Staging') {
-//        steps {
-//          build job: "${env.ORG}/jmeter-tests/master", 
-//            parameters: [
-//              string(name: 'BUILD_JMETER', value: 'no'), 
-//              string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
-//              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-//              string(name: 'SERVER_PORT', value: '80'),
-//              string(name: 'CHECK_PATH', value: '/health'),
-//              string(name: 'VUCount', value: '1'),
-//              string(name: 'LoopCount', value: '1'),
-//              string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
-//              string(name: 'FUNC_VALIDATION', value: 'yes'),
-//              string(name: 'AVG_RT_VALIDATION', value: '0')
-//            ]
-//        }
-//      }
-//      stage('Functional Check Staging') {
-//        steps {
-//          build job: "${env.ORG}/jmeter-tests/master", 
-//            parameters: [
-//              string(name: 'BUILD_JMETER', value: 'no'), 
-//              string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
-//              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-//              string(name: 'SERVER_PORT', value: '80'),
-//              string(name: 'CHECK_PATH', value: '/health'),
-//              string(name: 'VUCount', value: '1'),
-//              string(name: 'LoopCount', value: '1'),
-//              string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
-//              string(name: 'FUNC_VALIDATION', value: 'yes'),
-//              string(name: 'AVG_RT_VALIDATION', value: '0')
-//            ]
-//        }
-//      }
-//      stage('Performance Check Staging') {
-//        steps {
-//          build job: "${env.ORG}/jmeter-tests/master", 
-//            parameters: [
-//              string(name: 'BUILD_JMETER', value: 'no'), 
-//              string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
-//              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-//              string(name: 'SERVER_PORT', value: '80'),
-//              string(name: 'CHECK_PATH', value: '/health'),
-//              string(name: 'VUCount', value: '10'),
-//              string(name: 'LoopCount', value: '250'),
-//              string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
-//              string(name: 'FUNC_VALIDATION', value: 'no'),
-//              string(name: 'AVG_RT_VALIDATION', value: '250')
-//            ]
-//        }
-//      }
+          sh "python3 /dtcli/dtcli.py config apitoken ${DT_API_TOKEN} tenanthost ${DT_TENANT_URL}"
+          sh "python3 /dtcli/dtcli.py monspec pushdeploy monspec/${APP_NAME}_monspec.json monspec/${APP_NAME}_pipelineinfo.json ${APP_NAME}/Staging JenkinsBuild_${BUILD_NUMBER} ${BUILD_NUMBER}"
+        }
+      }*/
+
+      // #2 or we can use the built-in pipeline step of the Performance Signature Plugin
+      steps {
+        createDynatraceDeploymentEvent(
+          envId: 'Dynatrace Tenant',
+          tagMatchRules: [
+            [
+              meTypes: [
+                [meType: 'SERVICE']
+              ],
+              tags: [
+                [context: 'CONTEXTLESS', key: 'app', value: "${env.APP_NAME}"],
+                [context: 'CONTEXTLESS', key: 'environment', value: 'jx-staging']
+              ]
+            ]
+          ]) {
+          // we could log anything while deployment event is created!
+        }
+      }
     }
+    stage('Health Check Staging') {
+      steps {
+        // Lets give the app 30 extra seconds to be up&running
+        sleep 30
+
+        build job: "${env.ORG}/jmeter-tests/master",
+          parameters: [
+            string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
+            string(name: 'SERVER_URL', value: "${env.APP_NAME}.${APP_STAGING_DOMAIN}"),
+            string(name: 'SERVER_PORT', value: '80'),
+            string(name: 'CHECK_PATH', value: '/health'),
+            string(name: 'VUCount', value: '1'),
+            string(name: 'LoopCount', value: '1'),
+            string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
+            string(name: 'FUNC_VALIDATION', value: 'yes'),
+            string(name: 'AVG_RT_VALIDATION', value: '0'),
+            string(name: 'RETRY_ON_ERROR', value: 'yes')
+          ]
+      }
+    }
+    stage('Functional Check Staging') {
+      steps {
+        build job: "${env.ORG}/jmeter-tests/master",
+          parameters: [
+            string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
+            string(name: 'SERVER_URL', value: "${env.APP_NAME}.${APP_STAGING_DOMAIN}"),
+            string(name: 'SERVER_PORT', value: '80'),
+            string(name: 'CHECK_PATH', value: '/health'),
+            string(name: 'VUCount', value: '1'),
+            string(name: 'LoopCount', value: '1'),
+            string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
+            string(name: 'FUNC_VALIDATION', value: 'yes'),
+            string(name: 'AVG_RT_VALIDATION', value: '0')
+          ]
+      }
+    }
+    stage('Performance Check Staging') {
+      steps {
+
+        recordDynatraceSession(
+          envId: 'Dynatrace Tenant',
+          testCase: 'loadtest',
+          tagMatchRules: [
+            [
+              meTypes: [
+                [meType: 'SERVICE']
+              ],
+              tags: [
+                [context: 'CONTEXTLESS', key: 'app', value: "${env.APP_NAME}"],
+                [context: 'CONTEXTLESS', key: 'environment', value: 'jx-staging']
+              ]
+            ]
+          ]) {
+          build job: "${env.ORG}/jmeter-tests/master",
+            parameters: [
+              string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
+              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${APP_STAGING_DOMAIN}"),
+              string(name: 'SERVER_PORT', value: '80'),
+              string(name: 'CHECK_PATH', value: '/health'),
+              string(name: 'VUCount', value: '10'),
+              string(name: 'LoopCount', value: '250'),
+              string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
+              string(name: 'FUNC_VALIDATION', value: 'no'),
+              string(name: 'AVG_RT_VALIDATION', value: '250')
+            ]
+        }
+
+        // Now we use the Performance Signature Plugin to pull in Dynatrace Metrics based on the spec file
+        perfSigDynatraceReports envId: 'Dynatrace Tenant', nonFunctionalFailure: 1, specFile: "monspec/${env.APP_NAME}_perfsig.json"
+      }
+    }
+  }
     post {
         always {
             cleanWs()
