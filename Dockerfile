@@ -32,7 +32,7 @@ RUN addgroup --gid ${SERVICE_GID} ${SERVICE_GROUP} && adduser --ingroup ${SERVIC
 
 
 WORKDIR /
-COPY /catalogue /catalogue
+COPY ./catalogue /catalogue
 COPY ./images/ /images/
 
 RUN    chmod +x /catalogue && \

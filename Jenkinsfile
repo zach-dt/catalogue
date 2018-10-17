@@ -16,14 +16,16 @@ pipeline {
       steps {
         checkout scm
         container('golang') {
-          sh 'export GOPATH=/go'
-          sh 'mkdir -p /go/src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'glide --version'
+          sh 'export GOPATH=$PWD'
+          sh 'export PATH=$PATH:$GOPATH'
+          sh 'mkdir -p src/github.com/dynatrace-sockshop/catalogue/'
 
-          sh 'cp -R ./api /go/src/github.com/dynatrace-sockshop/catalogue/'
-          sh 'cp -R ./main.go /go/src/github.com/dynatrace-sockshop/catalogue/'
-          sh 'cp -R ./glide* /go/src/github.com/dynatrace-sockshop/catalogue/'
-          sh 'cp -R ./vendor /go/src/github.com/dynatrace-sockshop/catalogue/'
-          sh 'cd /go/src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./api src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./main.go src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./glide* src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./vendor src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cd src/github.com/dynatrace-sockshop/catalogue/'
 
           sh 'glide install && CGO_ENABLED=0 go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go'
         }
