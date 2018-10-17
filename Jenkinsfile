@@ -23,7 +23,7 @@ pipeline {
           sh 'cp -R ./main.go src/github.com/dynatrace-sockshop/catalogue/'
           sh 'cp -R ./glide.* src/github.com/dynatrace-sockshop/catalogue/'
 
-          sh 'export GOPATH=$PWD && cd src/github.com/dynatrace-sockshop/catalogue && glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go'
+          sh 'export GOPATH=$PWD && cd src/github.com/dynatrace-sockshop/catalogue && glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o $GOPATH/catalogue main.go'
         }
       }
     }
