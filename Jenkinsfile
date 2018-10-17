@@ -16,6 +16,7 @@ pipeline {
       steps {
         checkout scm
         container('golang') {
+          sh 'export GOPATH=/go'
           sh 'mkdir -p /go/src/github.com/dynatrace-sockshop/catalogue/'
 
           sh 'cp -R ./api /go/src/github.com/dynatrace-sockshop/catalogue/'
@@ -24,7 +25,7 @@ pipeline {
           sh 'cp -R ./vendor /go/src/github.com/dynatrace-sockshop/catalogue/'
           sh 'cd /go/src/github.com/dynatrace-sockshop/catalogue/'
 
-          sh 'glide install && CGO_ENABLED=0 go build -a -installsuffix cgo -o catalogue main.go'
+          sh 'glide install && CGO_ENABLED=0 go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go'
         }
       }
     }
