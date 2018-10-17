@@ -19,7 +19,6 @@ pipeline {
           sh 'glide --version'
           sh 'pwd'
           sh 'export GOPATH=$PWD'
-          sh 'export PATH=$PATH:$GOPATH'
           sh 'mkdir -p src/github.com/dynatrace-sockshop/catalogue/'
 
           sh 'cp -R ./api src/github.com/dynatrace-sockshop/catalogue/'
@@ -27,10 +26,14 @@ pipeline {
           sh 'cp -R ./glide* src/github.com/dynatrace-sockshop/catalogue/'
           sh 'cp -R ./vendor src/github.com/dynatrace-sockshop/catalogue/'
           sh 'cd src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'ls -lsa '
 
           sh 'glide install'// && CGO_ENABLED=0 go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go'
-          sh 'cd ..'
-          sh 'cd ..'
+
+          sh 'cd .. && pwd'
+          sh 'ls -lsa '
+
+          sh 'cd .. && pwd'
           sh 'ls -lsa '
         }
       }
