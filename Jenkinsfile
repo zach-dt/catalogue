@@ -18,7 +18,10 @@ pipeline {
         container('golang') {
           sh 'ls -lsa'
           sh 'mkdir -p src/github.com/dynatrace-sockshop/catalogue/'
-          sh 'cp -R ./* src/github.com/dynatrace-sockshop/catalogue/.'
+          sh 'cp -R ./api src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./main.go src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./glide* src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./vendor src/github.com/dynatrace-sockshop/catalogue/'
           sh 'cd ./src/github.com/dynatrace-sockshop/catalogue/'
           sh 'glide install && CGO_ENABLED=0 go build -a -installsuffix cgo -o catalogue main.go'
         }
