@@ -28,7 +28,10 @@ pipeline {
           sh 'cp -R ./vendor src/github.com/dynatrace-sockshop/catalogue/'
           sh 'cd src/github.com/dynatrace-sockshop/catalogue/'
 
-          sh 'glide install && CGO_ENABLED=0 go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go'
+          sh 'glide install'// && CGO_ENABLED=0 go build -a -ldflags -linkmode=external -installsuffix cgo -o /catalogue main.go'
+          sh 'cd ..'
+          sh 'cd ..'
+          sh 'ls -lsa '
         }
       }
     }
