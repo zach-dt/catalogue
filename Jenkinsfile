@@ -17,6 +17,8 @@ pipeline {
         checkout scm
         container('golang') {
           sh 'ls -lsa'
+          sh 'mkdir -p src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp ./* src/github.com/dynatrace-sockshop/catalogue/.'
           sh 'cd ./src/github.com/dynatrace-sockshop/catalogue/'
           sh 'glide install && CGO_ENABLED=0 go build -a -installsuffix cgo -o catalogue main.go'
         }
