@@ -17,6 +17,7 @@ pipeline {
         checkout scm
         container('golang') {
           sh 'glide --version'
+          sh 'pwd'
           sh 'export GOPATH=$PWD'
           sh 'export PATH=$PATH:$GOPATH'
           sh 'mkdir -p src/github.com/dynatrace-sockshop/catalogue/'

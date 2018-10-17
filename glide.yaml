@@ -1,4 +1,4 @@
-package: github.com/dynatrace-sockshop/catalogue
+package: .
 import:
 - package: github.com/go-kit/kit
   version: v0.4.0
