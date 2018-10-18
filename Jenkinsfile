@@ -1,165 +1,140 @@
 pipeline {
-    agent {
-        label "jenkins-go"
-    }
-    environment {
-      ORG               = 'acm-workshop'
-      APP_NAME          = 'catalogue'
-      GIT_PROVIDER      = 'github.com'
-      CHARTMUSEUM_CREDS = credentials('jenkins-x-chartmuseum')
-    }
-    stages {
-      stage('CI Build and push snapshot') {
-        when {
-          branch 'PR-*'
-        }
-        environment {
-          PREVIEW_VERSION = "0.0.0-SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER"
-          PREVIEW_NAMESPACE = "$APP_NAME-$BRANCH_NAME".toLowerCase()
-          HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
-        }
-        steps {
-          dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
-            checkout scm
-            container('go') {
-              sh "make linux"
-              sh 'export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml'
+  agent {
+    label 'golang'
+  }
+  environment {
+    APP_NAME = "catalogue"
+    ARTEFACT_ID = "sockshop/" + "${env.APP_NAME}"
+    VERSION = readFile 'version'
+    TAG = "10.31.240.247:5000/library/${env.ARTEFACT_ID}"
+    TAG_DEV = "${env.TAG}:dev"
+//    TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
+    TAG_STAGING = "${env.TAG}-${env.VERSION}"
+  }
+  stages {
+    stage('Go build') {
+      steps {
+        checkout scm
+        container('golang') {
+          sh 'go version && glide -v'
+          sh 'mkdir -p src/github.com/dynatrace-sockshop/catalogue/'
 
+          sh 'cp -R ./api src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./main.go src/github.com/dynatrace-sockshop/catalogue/'
+          sh 'cp -R ./glide.* src/github.com/dynatrace-sockshop/catalogue/'
 
-              sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION"
-            }
-          }
-          dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue/charts/preview') {
-            container('go') {
-              sh "make preview"
-              sh "jx preview --app $APP_NAME --dir ../.."
-            }
-          }
-        }
-      }
-      stage('Build Release') {
-        when {
-          branch 'master'
-        }
-        steps {
-          container('go') {
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
-              checkout scm
-            }
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue/charts/catalogue') {
-                // ensure we're not on a detached head
-                sh "git checkout master"
-                // until we switch to the new kubernetes / jenkins credential implementation use git credentials store
-                sh "git config --global credential.helper store"
-
-                sh "jx step git credentials"
-            }
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
-              // so we can retrieve the version in later steps
-              sh "echo \$(jx-release-version) > VERSION"
-            }
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue/charts/catalogue') {
-              sh "make tag"
-            }
-            dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue') {
-              container('go') {
-                sh "./scripts/build.jb.sh"
-                //sh "make release"
-                sh 'export VERSION=`cat VERSION`' // && skaffold build -f skaffold.yaml'
-                sh "docker build -t $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION) -f ./build/docker/catalogue/Dockerfile ./build/docker"
-                sh "docker push $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
-                sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
-              }
-            }
-          }
-        }
-      }
-      stage('Promote to Staging') {
-        when {
-          branch 'master'
-        }
-        steps {
-          dir ('/home/jenkins/go/src/github.com/acm-workshop/catalogue/charts/catalogue') {
-            container('go') {
-              sh 'jx step changelog --version v\$(cat ../../VERSION)'
-
-              // release the helm chart
-              sh 'jx step helm release'
-
-              // promote through all 'Auto' promotion Environments
-              sh 'jx promote -b --env staging --timeout 1h --version \$(cat ../../VERSION) $APP_NAME'
-            }
-          }
-        }
-      }
-      stage('DT Deploy Event') {
-        agent {
-          label "jenkins-dtcli"
-        }
-        steps {              
-          container('dtcli') {
-            checkout scm
-
-            sh "python3 /dtcli/dtcli.py config apitoken ${DT_API_TOKEN} tenanthost ${DT_TENANT_URL}"
-            sh "python3 /dtcli/dtcli.py monspec pushdeploy monspec/catalogue_monspec.json monspec/catalogue_pipelineinfo.json catalogue/Staging JenkinsBuild_${BUILD_NUMBER} ${BUILD_NUMBER}"
-          }
-        }
-      }
-      stage('Health Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-tests/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '1'),
-              string(name: 'LoopCount', value: '1'),
-              string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'yes'),
-              string(name: 'AVG_RT_VALIDATION', value: '0')
-            ]
-        }
-      }
-      stage('Functional Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-tests/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '1'),
-              string(name: 'LoopCount', value: '1'),
-              string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'yes'),
-              string(name: 'AVG_RT_VALIDATION', value: '0')
-            ]
-        }
-      }
-      stage('Performance Check Staging') {
-        steps {
-          build job: "${env.ORG}/jmeter-tests/master", 
-            parameters: [
-              string(name: 'BUILD_JMETER', value: 'no'), 
-              string(name: 'SCRIPT_NAME', value: 'catalogue_load.jmx'), 
-              string(name: 'SERVER_URL', value: "${env.APP_NAME}.${STAGING_URL}"),
-              string(name: 'SERVER_PORT', value: '80'),
-              string(name: 'CHECK_PATH', value: '/health'),
-              string(name: 'VUCount', value: '10'),
-              string(name: 'LoopCount', value: '250'),
-              string(name: 'DT_LTN', value: "PerfCheck_${BUILD_NUMBER}"),
-              string(name: 'FUNC_VALIDATION', value: 'no'),
-              string(name: 'AVG_RT_VALIDATION', value: '250')
-            ]
+          sh 'export GOPATH=$PWD && cd src/github.com/dynatrace-sockshop/catalogue && glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o $GOPATH/catalogue main.go'
         }
       }
     }
-    post {
-        always {
-            cleanWs()
+    stage('Docker build') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
         }
+      }
+      steps {
+        container('docker') {
+          echo "branch_name=${env.BRANCH_NAME}"
+
+          sh "docker build -t ${env.TAG_DEV} ."
+        }
+      }
+    }
+    stage('Docker push to registry'){
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
+      steps {
+        container('docker') {
+          sh "docker push ${env.TAG_DEV}"
+        }
+      }
+    }
+    stage('Deploy to dev namespace') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
+      steps {
+        container('kubectl') {
+          sh "kubectl -n dev apply -f manifest/catalogue.yml"
+        }
+      }
+    }
+    stage('Run health check in dev') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
+      steps {
+        sleep 60
+
+        build job: "jmeter-tests",
+          parameters: [
+            string(name: 'SCRIPT_NAME', value: 'basiccheck.jmx'),
+            string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
+            string(name: 'SERVER_PORT', value: '80'),
+            string(name: 'CHECK_PATH', value: '/health'),
+            string(name: 'VUCount', value: '1'),
+            string(name: 'LoopCount', value: '1'),
+            string(name: 'DT_LTN', value: "HealthCheck_${BUILD_NUMBER}"),
+            string(name: 'FUNC_VALIDATION', value: 'yes'),
+            string(name: 'AVG_RT_VALIDATION', value: '0'),
+            string(name: 'RETRY_ON_ERROR', value: 'yes')
+          ]
+      }
+    }
+    stage('Run functional check in dev') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+        }
+      }
+      steps {
+        build job: "jmeter-tests",
+          parameters: [
+            string(name: 'SCRIPT_NAME', value: "${env.APP_NAME}_load.jmx"),
+            string(name: 'SERVER_URL', value: "${env.APP_NAME}.dev"),
+            string(name: 'SERVER_PORT', value: '80'),
+            string(name: 'CHECK_PATH', value: '/health'),
+            string(name: 'VUCount', value: '1'),
+            string(name: 'LoopCount', value: '1'),
+            string(name: 'DT_LTN', value: "FuncCheck_${BUILD_NUMBER}"),
+            string(name: 'FUNC_VALIDATION', value: 'yes'),
+            string(name: 'AVG_RT_VALIDATION', value: '0')
+          ]
+      }
+    }
+    stage('Mark artifact for staging namespace') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*'
+        }
+      }
+      steps {
+        container('docker'){
+          sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
+        }
+      }
+    }
+    stage('Deploy to staging') {
+      when {
+        expression {
+          return env.BRANCH_NAME ==~ 'release/.*'
+        }
+      }
+      agent {
+        label 'git'
+      }
+      steps {
+        echo "update sockshop deployment yaml for staging -> github webhook triggers deployment to staging"
+        echo "apply sockshop deployment yaml to staging environment"
+      }
     }
   }
+}
