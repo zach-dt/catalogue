@@ -154,6 +154,8 @@ jobs:
           output_dir=workspace
           export WORKDIR=$PWD
           
+          go version
+
           cd workspace
           export GOPATH=$PWD
           mkdir -p src/github.com/dynatrace-sockshop/catalogue/
