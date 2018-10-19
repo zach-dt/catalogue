@@ -16,14 +16,19 @@ pipeline {
       steps {
         checkout scm
         container('golang') {
-          sh 'go version && glide -v'
-          sh 'mkdir -p src/github.com/dynatrace-sockshop/catalogue/'
+          sh '''
+            export GOPATH=$PWD
 
-          sh 'cp -R ./api src/github.com/dynatrace-sockshop/catalogue/'
-          sh 'cp -R ./main.go src/github.com/dynatrace-sockshop/catalogue/'
-          sh 'cp -R ./glide.* src/github.com/dynatrace-sockshop/catalogue/'
+            mkdir -p src/github.com/dynatrace-sockshop/catalogue/
 
-          sh 'export GOPATH=$PWD && cd src/github.com/dynatrace-sockshop/catalogue && glide install && go build -a -ldflags -linkmode=external -installsuffix cgo -o $GOPATH/catalogue main.go'
+            cp -R ./api src/github.com/dynatrace-sockshop/catalogue/
+            cp -R ./main.go src/github.com/dynatrace-sockshop/catalogue/
+            cp -R ./glide.* src/github.com/dynatrace-sockshop/catalogue/
+            cd src/github.com/dynatrace-sockshop/catalogue
+
+            glide install 
+            go build -a -ldflags -linkmode=external -installsuffix cgo -o $GOPATH/catalogue main.go'
+          '''
         }
       }
     }
@@ -119,6 +124,7 @@ pipeline {
       steps {
         container('docker'){
           sh "docker tag ${env.TAG_DEV} ${env.TAG_STAGING}"
+          sh "docker push ${env.TAG_STAGING}"
         }
       }
     }
