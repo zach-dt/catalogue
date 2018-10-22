@@ -138,8 +138,13 @@ pipeline {
         label 'git'
       }
       steps {
-        echo "update sockshop deployment yaml for staging -> github webhook triggers deployment to staging"
-        echo "apply sockshop deployment yaml to staging environment"
+        withCredentials([usernamePassword(credentialsId: 'git-credentials-acm', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+            sh "git config --global user.email ${env.GIT_USER_EMAIL}"
+            sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging"
+            sh "cd k8s-deploy-staging/ && sed -i 's#image: .*#image: ${env.TAG_STAGING}#' catalogue.yml && cat catalogue.yml"
+            sh "cd k8s-deploy-staging/ && git add catalogue.yml && git commit -m 'Update catalogue version ${env.VERSION}'"
+            sh 'cd k8s-deploy-staging/ && git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/dynatrace-sockshop/k8s-deploy-staging'
+        }
       }
     }
   }
