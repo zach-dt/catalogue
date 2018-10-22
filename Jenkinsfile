@@ -27,7 +27,7 @@ pipeline {
             cd src/github.com/dynatrace-sockshop/catalogue
 
             glide install 
-            go build -a -ldflags -linkmode=external -installsuffix cgo -o $GOPATH/catalogue main.go'
+            go build -a -ldflags -linkmode=external -installsuffix cgo -o $GOPATH/catalogue main.go
           '''
         }
       }
