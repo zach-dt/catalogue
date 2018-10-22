@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    label 'golang'
+    label 'golang2'
   }
   environment {
     APP_NAME = "catalogue"
