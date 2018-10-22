@@ -15,7 +15,7 @@ pipeline {
     stage('Go build') {
       steps {
         checkout scm
-        container('golang2') {
+        container('gobuilder') {
           sh '''
             export GOPATH=$PWD
 
