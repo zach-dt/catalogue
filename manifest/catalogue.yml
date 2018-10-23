@@ -17,9 +17,9 @@ spec:
         image: to-be-replaced-by-jenkins
         env: 
         - name: DT_TAGS
-          value: "SERVICE_TYPE=FRONTEND"
+          value: "SERVICE_TYPE=BACKEND"
         - name: DT_CUSTOM_PROP
-          value: "SERVICE_TYPE=FRONTEND"
+          value: "SERVICE_TYPE=BACKEND"
         resources:
           limits:
             cpu: 500m
