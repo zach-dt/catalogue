@@ -15,6 +15,11 @@ spec:
       containers:
       - name: catalogue
         image: to-be-replaced-by-jenkins
+        env: 
+        - name: DT_TAGS
+          value: "SERVICE_TYPE=FRONTEND"
+        - name: DT_CUSTOM_PROP
+          value: "SERVICE_TYPE=FRONTEND"
         resources:
           limits:
             cpu: 500m
