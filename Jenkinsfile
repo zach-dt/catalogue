@@ -66,6 +66,7 @@ pipeline {
       }
       steps {
         container('kubectl') {
+          sh "sed -i 's#image: .*#image: ${env.TAG_DEV}#' manifest/catalogue.yml"
           sh "kubectl -n dev apply -f manifest/catalogue.yml"
         }
       }
