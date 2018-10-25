@@ -39,8 +39,6 @@ pipeline {
       }
       steps {
         container('docker') {
-          echo "branch_name=${env.BRANCH_NAME}"
-
           sh "docker build -t ${env.TAG_DEV} ."
         }
       }
