@@ -3,7 +3,7 @@ pipeline {
     label 'git'
   }
   environment {
-    APP_NAME = "carts"
+    APP_NAME = "catalogue"
   }
   stages {
     stage('Performance Check') {
