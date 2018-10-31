@@ -81,18 +81,24 @@ pipeline {
         sleep 60
 
         container('jmeter') {
-          executeJMeter ( 
-            scriptName: 'jmeter/basiccheck.jmx',
-            resultsDir: "HealthCheck_${BUILD_NUMBER}",
-            serverUrl: "${env.APP_NAME}.dev", 
-            serverPort: 80,
-            checkPath: '/health',
-            vuCount: 1,
-            loopCount: 1,
-            LTN: "HealthCheck_${BUILD_NUMBER}",
-            funcValidation: true,
-            avgRtValidation: 0
-          )
+          script {
+            def status = executeJMeter (
+              scriptName: 'jmeter/basiccheck.jmx',
+              resultsDir: "HealthCheck_${BUILD_NUMBER}",
+              serverUrl: "${env.APP_NAME}.dev", 
+              serverPort: 80,
+              checkPath: '/health',
+              vuCount: 1,
+              loopCount: 1,
+              LTN: "HealthCheck_${BUILD_NUMBER}",
+              funcValidation: true,
+              avgRtValidation: 0
+            )
+            if (status != 0) {
+              currentBuild.result = 'FAILED'
+              error "Health check in dev failed."
+            }
+          }
         }
       }
     }
@@ -104,18 +110,24 @@ pipeline {
       }
       steps {
         container('jmeter') {
-          executeJMeter ( 
-            scriptName: "jmeter/${env.APP_NAME}_load.jmx",
-            resultsDir: "FuncCheck_${BUILD_NUMBER}", 
-            serverUrl: "${env.APP_NAME}.dev", 
-            serverPort: 80,
-            checkPath: '/health',
-            vuCount: 1,
-            loopCount: 1,
-            LTN: "FuncCheck_${BUILD_NUMBER}",
-            funcValidation: true,
-            avgRtValidation: 0
-          )
+          script {
+            def status = executeJMeter (
+              scriptName: "jmeter/${env.APP_NAME}_load.jmx",
+              resultsDir: "FuncCheck_${BUILD_NUMBER}", 
+              serverUrl: "${env.APP_NAME}.dev", 
+              serverPort: 80,
+              checkPath: '/health',
+              vuCount: 1,
+              loopCount: 1,
+              LTN: "FuncCheck_${BUILD_NUMBER}",
+              funcValidation: true,
+              avgRtValidation: 0
+            )
+            if (status != 0) {
+              currentBuild.result = 'FAILED'
+              error "Functional check in dev failed."
+            }
+          }
         }
       }
     }
