@@ -17,6 +17,11 @@ groups:
   jobs: 
   - init-dynatrace-catalogue
 
+- name: performance
+  jobs:
+  - run-performance-check
+  - validate-performance-check
+
 resource_types:
 - name: dynatrace-resource
   type: docker-image
@@ -50,7 +55,7 @@ resources:
   type: dynatrace-resource
   source:
     apitoken: ((dt_api_token))
-    tenanthost: ((dt_tenant_host))
+    tenanthost: ((dt_tenant_url))
 
 #- name: catalogue-image
 #  type: docker-image
@@ -121,8 +126,8 @@ jobs:
   - task: init-dynatrace-task
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/init-dynatrace-task.yml
     params: 
-      apitoken: ((apitoken))
-      tenanthost: ((tenanthost))
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_url))
       APP_REPO: git-catalogue
 
 # CATALOGUE
@@ -204,16 +209,16 @@ jobs:
       STAGE: Dev
       PCF_APP_SUFFIX: ((pcf-dev-catalogue-suffix)) 
       APP_REPO: git-catalogue           
-  # - put: dynatrace
-  #   params:
-  #     monspecserviceenvironment: catalogue/Dev
-  #     pipelinetaskname: deploy-to-dev
-  #     deployversion: v1.0
-  #     APP_REPO: git-catalogue
   - put: pcf-dev
     params:
       path: git-catalogue
       manifest: app-manifest-output/manifest.yml
+  - put: dynatrace
+    params:
+      monspecserviceenvironment: catalogue/Dev
+      pipelinetaskname: deploy-to-dev
+      deployversion: v1.0
+      APP_REPO: git-catalogue
 
 - name: run-health-check
   serial: true
@@ -290,16 +295,16 @@ jobs:
       STAGE: Staging
       PCF_APP_SUFFIX: ((pcf-staging-catalogue-suffix)) 
       APP_REPO: git-catalogue               
+  - put: pcf-staging
+    params:
+      path: git-catalogue
+      manifest: app-manifest-output/manifest.yml 
   - put: dynatrace
     params:
       monspecserviceenvironment: catalogue/Staging
       pipelinetaskname: deploy-to-staging
       deployversion: v1.0 
       APP_REPO: git-catalogue 
-  - put: pcf-staging
-    params:
-      path: git-catalogue
-      manifest: app-manifest-output/manifest.yml 
 
 # - name: run-e2e-test
 #   serial: true
@@ -386,16 +391,16 @@ jobs:
       STAGE: Production 
       PCF_APP_SUFFIX: ((pcf-production-catalogue-suffix)) 
       APP_REPO: git-catalogue     
+  - put: pcf-production
+    params:
+      path: git-catalogue
+      manifest: app-manifest-output/manifest.yml
   - put: dynatrace
     params:
       monspecserviceenvironment: catalogue/Production
       pipelinetaskname: deploy-to-production
       deployversion: v1.0 
       APP_REPO: git-catalogue 
-  - put: pcf-production
-    params:
-      path: git-catalogue
-      manifest: app-manifest-output/manifest.yml
 
 - name: promote-new-version
   serial: true
@@ -451,3 +456,53 @@ jobs:
 #       - catalogue-release-bucket/catalogue-*
 #  - put: version
 #    params: { file: version/number }    
+
+- name: run-performance-check
+  serial: true
+  public: true
+  plan:
+  - aggregate:
+    - get: git-catalogue
+      trigger: false
+    - get: git-pipeline
+  - task: run-performance-check
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
+    params:
+      APP_REPO: git-catalogue
+      PRODUCTION: false
+      SCRIPT_NAME: jmeter/catalogue_load.jmx
+      RESULT_DIR: PerfCheck
+      PCF_APP_SUFFIX: ((pcf-dev-catalogue-suffix))
+      PCF_APP_DOMAIN: ((pcf-dev-app-domain))
+      SERVER_PORT: 80
+      VU_COUNT: 10
+      LOOP_COUNT: 25 #250
+      DT_LTN: FuncCheck
+      FUNC_VALIDATION: false
+      AVG_RT_VALIDATION: 3000
+      THINK_TIME: 0
+  - task: push-dynatrace-monspec-data
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
+    params: 
+      monspecserviceenvironment: catalogue/Dev
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_url))
+      APP_REPO: git-catalogue 
+
+- name: validate-performance-check
+  serial: true
+  public: true
+  plan:
+  - get: git-catalogue
+    trigger: true
+    passed:
+      - run-performance-check
+  - get: git-pipeline
+    trigger: false      
+  - task: validate-via-monspec
+    file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
+    params: 
+      monspeccomparison: catalogue/DevToDevLastHour
+      apitoken: ((dt_api_token))
+      tenanthost: ((dt_tenant_url))
+      APP_REPO: git-catalogue 

@@ -9,5 +9,5 @@ applications:
     APP_PORT: 8080
     DB_DSN: "catalogue_user:default_password@tcp(sockshop-catalogue-db.ckbkxcwrvff7.eu-west-1.rds.amazonaws.com:3306)/catalogue_db"
     DT_NODE_ID: APPNAME
-    DT_CUSTOM_PROP: DEPLOYMENT_GRP_NAME=DTGRP DEPLOYMENT_COLOR=APPCOLOR
+    DT_CUSTOM_PROP: DEPLOYMENT_GRP_NME=DTGRP DEPLOYMENT_COLOR=APPCOLOR
     DEPLOYMENT_GRP_NAME: DTGRP

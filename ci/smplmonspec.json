@@ -5,7 +5,16 @@
         "name": "catalogue",
         "owner" : "catalogue-team",
         "_comment" : "This defines our initial thoughts about monitoring!",
-        "environments" : { 
+        "environments" : {
+            "Dev" : {
+                "tags" : [
+                    {
+                        "context": "CONTEXTLESS",
+                        "key": "DeploymentGroup", 
+                        "value": "Dev"
+                    }                
+                ]
+            },
             "Staging" : {
                 "tags" : [
                     {
@@ -73,6 +82,14 @@
                 },
                 "shiftsourcetimeframe" : 2,
                 "shiftcomparetimeframe" : 1440
+            },
+            { 
+                "name" : "DevToDevLastHour",
+                "source" : "Dev",
+                "compare" : "Dev",
+                "scalefactorperc" : { "default": 10},
+                "shiftsourcetimeframe" : 2,
+                "shiftcomparetimeframe" : 60
             },
             { 
                 "name" : "StagingToStagingLastHour",
