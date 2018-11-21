@@ -55,7 +55,7 @@ resources:
   type: dynatrace-resource
   source:
     apitoken: ((dt_api_token))
-    tenanthost: ((dt_tenant_url))
+    tenanthost: ((dt_tenant_host))
 
 #- name: catalogue-image
 #  type: docker-image
@@ -127,7 +127,7 @@ jobs:
     file: git-pipeline/deploy/cloud-foundry/ci/tasks/init-dynatrace-task.yml
     params: 
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_url))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-catalogue
 
 # CATALOGUE
@@ -486,7 +486,7 @@ jobs:
     params: 
       monspecserviceenvironment: catalogue/Dev
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_url))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-catalogue 
 
 - name: validate-performance-check
@@ -504,5 +504,5 @@ jobs:
     params: 
       monspeccomparison: catalogue/DevToDevLastHour
       apitoken: ((dt_api_token))
-      tenanthost: ((dt_tenant_url))
+      tenanthost: ((dt_tenant_host))
       APP_REPO: git-catalogue 

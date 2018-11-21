@@ -1,7 +1,7 @@
 ---
 applications:
 - name: APPNAME
-  memory: 512M
+  memory: 64M
   instances: 1
   buildpack: https://github.com/cloudfoundry/go-buildpack.git
   env:
