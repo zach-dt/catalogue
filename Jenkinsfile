@@ -83,21 +83,20 @@ pipeline {
       }
     }
     stage('DT Deploy Event') {
-        when {
-            expression {
-            return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-            }
-        }
-        steps {
-          container("curl") {
-            // send custom deployment event to Dynatrace
-            script {
-              def status = pushDynatraceDeploymentEvent (
-                tagRule : tagMatchRules
-              )
-            }
+      when {
+          expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          }
+      }
+      steps {
+        container("curl") {
+          script {
+            def status = pushDynatraceDeploymentEvent (
+              tagRule : tagMatchRules
+            )
           }
         }
+      }
     }
     stage('Run health check in dev') {
       when {
