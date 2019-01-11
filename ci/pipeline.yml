@@ -43,13 +43,13 @@ resources:
   type: git
   source:
     branch: master
-    uri: https://github.com/((workshop-repository))/sockshop.git
+    uri: https://github.com/((pipeline-tasks))/cf-deploy-sockshop.git
 
 - name: git-catalogue
   type: git
   source:
     branch: master
-    uri: https://github.com/((workshop-repository))/catalogue.git
+    uri: https://github.com/((source-code))/catalogue.git
 
 - name: dynatrace
   type: dynatrace-resource
@@ -77,7 +77,7 @@ resources:
   type: semver
   source:
     driver: git
-    uri: https://github.com/((workshop-repository))/catalogue.git
+    uri: https://github.com/((source-code))/catalogue.git
     branch: master
     file: version
 
@@ -124,7 +124,7 @@ jobs:
     - get: git-pipeline
     - get: git-catalogue 
   - task: init-dynatrace-task
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/init-dynatrace-task.yml
+    file: git-pipeline//ci/tasks/init-dynatrace-task.yml
     params: 
       apitoken: ((dt_api_token))
       tenanthost: ((dt_tenant_host))
@@ -204,7 +204,7 @@ jobs:
   - get: git-pipeline
     trigger: false      
   - task: prepare-app-manifest
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    file: git-pipeline//ci/tasks/app-manifest-prep.yml
     params:
       STAGE: Dev
       PCF_APP_SUFFIX: ((pcf-dev-catalogue-suffix)) 
@@ -232,7 +232,7 @@ jobs:
     - get: git-pipeline
       trigger: false 
   - task: run-health-check
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
+    file: git-pipeline//ci/tasks/jmeter-test.yml
     params:
       APP_REPO: git-catalogue
       PRODUCTION: false
@@ -259,7 +259,7 @@ jobs:
         - run-health-check
     - get: git-pipeline
   - task: run-functional-check
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
+    file: git-pipeline//ci/tasks/jmeter-test.yml
     params:
       APP_REPO: git-catalogue
       PRODUCTION: false
@@ -290,7 +290,7 @@ jobs:
   - get: git-pipeline
     trigger: false      
   - task: prepare-app-manifest
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    file: git-pipeline//ci/tasks/app-manifest-prep.yml
     params:
       STAGE: Staging
       PCF_APP_SUFFIX: ((pcf-staging-catalogue-suffix)) 
@@ -317,19 +317,19 @@ jobs:
 #        - deploy-to-staging
 #     - get: git-pipeline
 #   - task: run-e2e-check
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/load-tests.yml
+#     file: git-pipeline//ci/tasks/load-tests.yml
 #     params:
 #       APP_REPO: git-pipeline
 #       FUNC_VALIDATION: yes
 #       PRODUCTION: true
-#       SCRIPT_NAME: deploy/cloud-foundry/ci/jmeterfront-end_e2e_load.jmx
+#       SCRIPT_NAME: /ci/jmeterfront-end_e2e_load.jmx
 #       PCF_APP_SUFFIX: ((pcf-staging-catalogue-suffix))
 #       PCF_APP_DOMAIN: ((pcf-staging-app-domain))
 #       DT_LTN: e2eCheck
 #       VUCount: 5
 #       LoopCount: 20 
 #   - task: push-dynatrace-monspec-data
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
+#     file: git-pipeline//ci/tasks/push-dynatrace-monspec-data.yml
 #     params: 
 #       monspecserviceenvironment: catalogue/Production-$NEXT_APP_COLOR
 #       apitoken: ((apitoken))
@@ -347,7 +347,7 @@ jobs:
 #   - get: git-pipeline
 #     trigger: false      
 #   - task: get-current-app-color
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+#     file: git-pipeline//ci/tasks/current-app-get-info.yml
 #     params:
 #       PCF_APP_SUFFIX: ((pcf-prod-catalogue-suffix))
 #       PCF_API: ((pcf-prod-api))
@@ -356,7 +356,7 @@ jobs:
 #       PCF_PWD: ((pcf-prod-deploy-password))
 #       PCF_SPACE: ((pcf-prod-space))       
 #   - task: validate-via-monspec
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
+#     file: git-pipeline//ci/tasks/validate-via-monspec.yml
 #     params: 
 #       monspeccomparison: catalogue/Production-$NEXT_APP_COLOR\ToProduction-$CURRENT_APP_COLOR\Last5m
 #       apitoken: ((apitoken))
@@ -377,7 +377,7 @@ jobs:
   - get: git-pipeline
     trigger: false      
   - task: get-current-app-color
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    file: git-pipeline//ci/tasks/current-app-get-info.yml
     params:
       PCF_APP_SUFFIX: ((pcf-production-catalogue-suffix))
       PCF_API: ((pcf-production-api))
@@ -386,7 +386,7 @@ jobs:
       PCF_USER: ((pcf-username))
       PCF_PWD: ((pcf-password))
   - task: prepare-app-manifest
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/app-manifest-prep.yml
+    file: git-pipeline//ci/tasks/app-manifest-prep.yml
     params:
       STAGE: Production 
       PCF_APP_SUFFIX: ((pcf-production-catalogue-suffix)) 
@@ -413,7 +413,7 @@ jobs:
   - get: git-pipeline
     trigger: false      
   - task: get-current-app-color
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/current-app-get-info.yml
+    file: git-pipeline//ci/tasks/current-app-get-info.yml
     params:
       PCF_APP_SUFFIX: ((pcf-production-catalogue-suffix))
       PCF_API: ((pcf-production-api))
@@ -422,7 +422,7 @@ jobs:
       PCF_USER: ((pcf-username))
       PCF_PWD: ((pcf-password))
   - task: switch-app-routes
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/update-routes.yml
+    file: git-pipeline//ci/tasks/update-routes.yml
     params:
       PCF_APP_SUFFIX: ((pcf-production-catalogue-suffix))
       PCF_APP_DOMAIN: ((pcf-production-app-domain))
@@ -445,7 +445,7 @@ jobs:
 #     - get: version
 #       params: { pre: build }
 #   - task: create-catalogue-release-info
-#     file: git-pipeline/deploy/cloud-foundry/ci/tasks/prepare-release.yml
+#     file: git-pipeline//ci/tasks/prepare-release.yml
 #     params:
 #       APP_NAME: catalogue
 #   - put: catalogue-release
@@ -466,7 +466,7 @@ jobs:
       trigger: false
     - get: git-pipeline
   - task: run-performance-check
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/jmeter-test.yml
+    file: git-pipeline//ci/tasks/jmeter-test.yml
     params:
       APP_REPO: git-catalogue
       PRODUCTION: false
@@ -482,7 +482,7 @@ jobs:
       AVG_RT_VALIDATION: 3000
       THINK_TIME: 0
   - task: push-dynatrace-monspec-data
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/push-dynatrace-monspec-data.yml
+    file: git-pipeline//ci/tasks/push-dynatrace-monspec-data.yml
     params: 
       monspecserviceenvironment: catalogue/Dev
       apitoken: ((dt_api_token))
@@ -500,7 +500,7 @@ jobs:
   - get: git-pipeline
     trigger: false      
   - task: validate-via-monspec
-    file: git-pipeline/deploy/cloud-foundry/ci/tasks/validate-via-monspec.yml
+    file: git-pipeline//ci/tasks/validate-via-monspec.yml
     params: 
       monspeccomparison: catalogue/DevToDevLastHour
       apitoken: ((dt_api_token))
