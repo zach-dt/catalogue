@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: catalogue
-        image: to-be-replaced-by-jenkins
+        image: dynatracesockshop/catalogue:0.5.0
         env: 
         - name: DT_TAGS
           value: "product=sockshop"
