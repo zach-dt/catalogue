@@ -1,5 +1,17 @@
 @Library('dynatrace@master') _
 
+def tagMatchRules = [
+  [
+    meTypes: [
+      [meType: 'SERVICE']
+    ],
+    tags : [
+      [context: 'CONTEXTLESS', key: 'app', value: 'catalogue'],
+      [context: 'CONTEXTLESS', key: 'environment', value: 'dev']
+    ]
+  ]
+]
+
 pipeline {
   agent {
     label 'golang2'
@@ -71,17 +83,24 @@ pipeline {
       }
     }
     stage('DT Deploy Event') {
-        when {
-            expression {
-            return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-            }
-        }
-        steps {
-          container("curl") {
-            // send custom deployment event to Dynatrace
-            sh "curl -X POST \"$DT_TENANT_URL/api/v1/events?Api-Token=$DT_API_TOKEN\" -H \"accept: application/json\" -H \"Content-Type: application/json\" -d \"{ \\\"eventType\\\": \\\"CUSTOM_DEPLOYMENT\\\", \\\"attachRules\\\": { \\\"tagRule\\\" : [{ \\\"meTypes\\\" : [\\\"SERVICE\\\"], \\\"tags\\\" : [ { \\\"context\\\" : \\\"CONTEXTLESS\\\", \\\"key\\\" : \\\"app\\\", \\\"value\\\" : \\\"${env.APP_NAME}\\\" }, { \\\"context\\\" : \\\"CONTEXTLESS\\\", \\\"key\\\" : \\\"environment\\\", \\\"value\\\" : \\\"dev\\\" } ] }] }, \\\"deploymentName\\\":\\\"${env.JOB_NAME}\\\", \\\"deploymentVersion\\\":\\\"${env.VERSION}\\\", \\\"deploymentProject\\\":\\\"\\\", \\\"ciBackLink\\\":\\\"${env.BUILD_URL}\\\", \\\"source\\\":\\\"Jenkins\\\", \\\"customProperties\\\": { \\\"Jenkins Build Number\\\": \\\"${env.BUILD_ID}\\\",  \\\"Git commit\\\": \\\"${env.GIT_COMMIT}\\\" } }\" "
+      when {
+          expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          }
+      }
+      steps {
+        container("curl") {
+          script {
+            def status = pushDynatraceDeploymentEvent (
+              tagRule : tagMatchRules,
+              customProperties : [
+                [key: 'Jenkins Build Number', value: "${env.BUILD_ID}"],
+                [key: 'Git commit', value: "${env.GIT_COMMIT}"]
+              ]
+            )
           }
         }
+      }
     }
     stage('Run health check in dev') {
       when {
@@ -97,7 +116,7 @@ pipeline {
           script {
             def status = executeJMeter (
               scriptName: 'jmeter/basiccheck.jmx',
-              resultsDir: "HealthCheck_${BUILD_NUMBER}",
+              resultsDir: "HealthCheck_${env.APP_NAME}",
               serverUrl: "${env.APP_NAME}.dev", 
               serverPort: 80,
               checkPath: '/health',
@@ -126,7 +145,7 @@ pipeline {
           script {
             def status = executeJMeter (
               scriptName: "jmeter/${env.APP_NAME}_load.jmx",
-              resultsDir: "FuncCheck_${BUILD_NUMBER}", 
+              resultsDir: "FuncCheck_${env.APP_NAME}", 
               serverUrl: "${env.APP_NAME}.dev", 
               serverPort: 80,
               checkPath: '/health',
